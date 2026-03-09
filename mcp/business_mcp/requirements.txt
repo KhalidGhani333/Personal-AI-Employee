@@ -1,0 +1,16 @@
+# Business MCP Server - Python Dependencies
+
+# MCP SDK
+mcp>=0.9.0
+
+# Email
+# (smtplib and email are built-in to Python)
+
+# Browser Automation
+playwright>=1.40.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Async Support
+# (asyncio is built-in to Python 3.10+)

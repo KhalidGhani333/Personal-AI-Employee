@@ -1,0 +1,315 @@
+# Business Auditor - Detailed Instructions
+
+## Objective
+Analyze business performance weekly and generate comprehensive CEO briefings with actionable insights.
+
+## Weekly Audit Workflow
+
+### 1. Data Collection
+```
+Sources:
+- /Accounting/transactions.csv (bank data)
+- /Done/Tasks (completed work)
+- /Done/Emails (communication)
+- /Invoices (revenue)
+- Business_Goals.md (targets)
+- Previous briefings (trends)
+```
+
+### 2. Financial Analysis
+
+**Revenue Calculation:**
+```
+Total Revenue = Sum of:
+- Paid invoices this week
+- Received payments
+- Completed project payments
+
+Breakdown by:
+- Client
+- Project
+- Service type
+```
+
+**Expense Analysis:**
+```
+Total Expenses = Sum of:
+- Subscriptions
+- Tools/software
+- Contractor payments
+- Operating costs
+
+Categories:
+- Fixed costs (subscriptions)
+- Variable costs (project-based)
+- One-time expenses
+```
+
+**Cash Flow:**
+```
+Net Cash Flow = Revenue - Expenses
+Burn Rate = Monthly expenses / Cash on hand
+Runway = Cash on hand / Monthly burn rate
+```
+
+### 3. Task Performance Analysis
+
+**Completed Tasks:**
+```
+Metrics:
+- Total tasks completed
+- Average completion time
+- Tasks by priority
+- Tasks by category
+
+Identify:
+- Most productive days
+- Task completion patterns
+- Bottlenecks
+```
+
+**Task Velocity:**
+```
+Velocity = Tasks completed / Week
+Trend = Compare to previous weeks
+Forecast = Estimate next week capacity
+```
+
+### 4. Client Analysis
+
+**Client Activity:**
+```
+For each client:
+- Revenue generated
+- Tasks completed
+- Communication frequency
+- Payment status
+- Satisfaction indicators
+```
+
+**Top Clients:**
+```
+Rank by:
+1. Revenue contribution
+2. Project volume
+3. Engagement level
+```
+
+### 5. Bottleneck Identification
+
+**Common Bottlenecks:**
+- Tasks taking longer than expected
+- Delayed client responses
+- Resource constraints
+- Process inefficiencies
+
+**Analysis:**
+```
+For each bottleneck:
+- Identify cause
+- Measure impact
+- Suggest solution
+- Estimate improvement
+```
+
+### 6. Generate CEO Briefing
+
+```markdown
+---
+type: ceo_briefing
+period: {start_date} to {end_date}
+generated: {ISO_timestamp}
+---
+
+# Monday Morning CEO Briefing
+Week of {date}
+
+## 📊 Executive Summary
+{2-3 sentence overview of the week}
+
+## 💰 Financial Performance
+
+### Revenue
+- **This Week**: ${weekly_revenue}
+- **Month-to-Date**: ${mtd_revenue} ({percentage}% of ${monthly_target})
+- **vs Last Week**: {+/-}${difference} ({+/-}percentage%)
+
+### Expenses
+- **This Week**: ${weekly_expenses}
+- **Month-to-Date**: ${mtd_expenses}
+- **Top Expense**: {category} - ${amount}
+
+### Cash Flow
+- **Net This Week**: ${net_cash_flow}
+- **Current Runway**: {months} months
+- **Burn Rate**: ${monthly_burn}/month
+
+## ✅ Accomplishments
+
+### Completed Tasks ({count})
+- ✓ {high_impact_task_1}
+- ✓ {high_impact_task_2}
+- ✓ {high_impact_task_3}
+
+### Client Deliverables
+- {client_1}: {deliverable}
+- {client_2}: {deliverable}
+
+### Revenue Milestones
+- {milestone_1}
+- {milestone_2}
+
+## 🎯 Goals Progress
+
+| Goal | Target | Current | Progress |
+|------|--------|---------|----------|
+| Monthly Revenue | ${target} | ${current} | {percentage}% |
+| Client Response Time | < 24h | {avg_time} | {status} |
+| Task Completion Rate | 90% | {rate}% | {status} |
+
+## ⚠️ Bottlenecks & Issues
+
+### {Bottleneck 1}
+- **Impact**: {description}
+- **Cause**: {root_cause}
+- **Recommendation**: {solution}
+- **Expected Improvement**: {benefit}
+
+### {Bottleneck 2}
+- **Impact**: {description}
+- **Cause**: {root_cause}
+- **Recommendation**: {solution}
+
+## 💡 Proactive Suggestions
+
+### Cost Optimization
+**{Subscription/Service Name}**
+- **Cost**: ${monthly_cost}
+- **Usage**: {usage_stats}
+- **Recommendation**: {action}
+- **Potential Savings**: ${savings}/month
+
+### Revenue Opportunities
+**{Opportunity 1}**
+- **Description**: {details}
+- **Potential Revenue**: ${amount}
+- **Action Required**: {steps}
+
+### Process Improvements
+**{Process Name}**
+- **Current Time**: {time}
+- **Proposed Improvement**: {description}
+- **Time Savings**: {hours}/week
+
+## 📅 Upcoming Priorities
+
+### This Week
+- [ ] {priority_1}
+- [ ] {priority_2}
+- [ ] {priority_3}
+
+### Deadlines
+- {project_1}: Due {date} ({days} days)
+- {project_2}: Due {date} ({days} days)
+
+### Follow-ups Required
+- {client_1}: {action_needed}
+- {client_2}: {action_needed}
+
+## 📈 Trends & Insights
+
+### Revenue Trend
+{trend_description}
+{chart_or_data}
+
+### Task Completion Trend
+{trend_description}
+{chart_or_data}
+
+### Client Engagement
+{trend_description}
+
+## 🚨 Action Items
+
+### High Priority
+1. {action_1} - Due: {date}
+2. {action_2} - Due: {date}
+
+### Medium Priority
+1. {action_3}
+2. {action_4}
+
+## 📊 Key Metrics Summary
+
+| Metric | This Week | Last Week | Change |
+|--------|-----------|-----------|--------|
+| Revenue | ${amount} | ${amount} | {+/-}% |
+| Expenses | ${amount} | ${amount} | {+/-}% |
+| Tasks Completed | {count} | {count} | {+/-}% |
+| Client Emails | {count} | {count} | {+/-}% |
+| Avg Response Time | {hours}h | {hours}h | {+/-}% |
+
+---
+*Generated by AI Employee v1.0*
+*Next briefing: {next_date}*
+```
+
+### 7. Subscription Audit
+
+**Detect Unused Subscriptions:**
+```
+For each subscription:
+- Check last login/usage
+- Compare cost vs value
+- Identify duplicates
+- Flag for review
+
+Criteria for flagging:
+- No usage in 30+ days
+- Cost increased > 20%
+- Duplicate functionality
+- Better alternatives available
+```
+
+### 8. Trend Analysis
+
+**Week-over-Week Comparison:**
+```
+Compare:
+- Revenue growth/decline
+- Expense changes
+- Task velocity
+- Client activity
+- Response times
+
+Identify:
+- Positive trends (celebrate)
+- Negative trends (address)
+- Anomalies (investigate)
+```
+
+## Integration Points
+
+- **Dashboard Updater**: Pull current stats
+- **Log Manager**: Access activity logs
+- **Accounting Integrator**: Get financial data
+- **Task Manager**: Get task completion data
+
+## Automation Schedule
+
+**Weekly Briefing:**
+- Run: Every Sunday at 11 PM
+- Deliver: Monday 8 AM
+- Format: Markdown + PDF
+
+**Monthly Report:**
+- Run: Last day of month
+- Include: Full month analysis
+- Compare: Year-over-year
+
+## Success Criteria
+- Briefing generated on time
+- All metrics accurate
+- Actionable insights provided
+- Trends identified correctly
+- Recommendations relevant

@@ -1,9 +1,63 @@
-# Company Handbook
+# 📖 Company Handbook - AI Employee Rules & Preferences
 
-## Core Operating Rules
+**Version:** 2.0
+**Last Updated:** 2026-03-09
+**Tier:** Silver (70% Complete)
 
-### 1. Always Log Important Actions
-Every significant action (email sent, payment made, file moved) must be logged in the appropriate log file with timestamp and details.
+---
+
+## 🎯 Mission Statement
+
+This AI Employee assists with personal and business communication, task management, and workflow automation while maintaining professionalism, respecting privacy, and requiring human approval for sensitive actions.
+
+---
+
+## 🤖 AI Reply Generation System
+
+### Supported Intent Types
+The AI can detect and respond to 10+ message intents:
+
+1. **Greeting** - "Hello", "Hi", "How are you?"
+2. **Gratitude** - "Thanks for your help", "I appreciate it"
+3. **Question** - "Can you help me with...?", "What about...?"
+4. **Urgent** - "This is urgent", "ASAP", "Critical"
+5. **Issue** - "I'm having a problem", "Error", "Not working"
+6. **Meeting** - "Can we schedule a meeting?", "Let's meet"
+7. **Project Update** - "What's the status?", "Any updates?"
+8. **Follow-up** - "Following up on...", "Checking in"
+9. **Info Request** - "Can you provide details?", "Tell me about..."
+10. **Confirmation** - "Please confirm", "Is this correct?"
+
+### Response Style by Platform
+
+**Email (Professional):**
+- Formal greeting with recipient's name
+- Complete sentences and proper structure
+- Professional closing: "Best regards"
+- 2-4 paragraphs maximum
+
+**WhatsApp (Casual):**
+- Friendly greeting with emojis (😊 👍 ✅)
+- Short messages (1-3 sentences)
+- Casual but professional tone
+- Quick responses during business hours
+
+---
+
+## 📧 Email Communication Rules
+
+### Response Style
+- **Tone:** Professional and courteous
+- **Length:** Concise but complete (2-4 paragraphs max)
+- **Greeting:** Always use recipient's first name
+- **Closing:** "Best regards" for professional emails
+
+### Priority Handling
+- **Urgent Keywords:** urgent, asap, critical, emergency, important
+- **Response Time:**
+  - Urgent: < 1 hour
+  - High Priority: < 4 hours
+  - Normal: < 24 hours
 
 ### 2. Human Approval Required For
 - **Financial Actions:** Any payment over $50 or to new recipients
@@ -18,20 +72,62 @@ Every significant action (email sent, payment made, file moved) must be logged i
 - Always be professional and courteous
 - Use proper grammar and spelling
 - Include clear subject lines
-- Sign with "AI Employee Assistant" signature
+- Personalize with recipient's name
 - CC relevant parties when appropriate
+- **AI Generated:** All replies go through approval workflow
 
 #### WhatsApp/Messaging
 - Respond within 2 hours during business hours (9 AM - 6 PM)
-- Use polite, friendly tone
-- Flag urgent messages with "URGENT" prefix
+- Use polite, friendly tone with appropriate emojis
+- Flag urgent messages immediately
 - Never share sensitive information via WhatsApp
+- **Session Management:** WhatsApp session persists (no repeated QR scanning)
 
-#### Social Media
+#### Social Media (LinkedIn, Facebook, Twitter)
 - Post only pre-approved content
 - Maintain professional brand voice
 - Respond to comments within 24 hours
 - Flag negative comments for human review
+- **All posts require approval** before publishing
+
+---
+
+## 🔄 Workflow & Task Management
+
+### Task Lifecycle
+1. **Inbox** → New tasks and messages arrive here
+2. **Needs_Action** → AI analyzes and creates execution plan
+3. **Needs_Approval** → Human reviews replies/posts before sending
+4. **Done** → Completed tasks with full audit trail
+
+### Automation Rules
+- **Auto-Process:** Tasks in Inbox every 5 minutes (daemon mode)
+- **Auto-Generate:** Replies for all incoming messages
+- **Auto-Archive:** Completed tasks older than 30 days
+- **Auto-Remind:** Pending approvals older than 24 hours
+
+---
+
+## 🔒 Session Management
+
+### Persistent Sessions (No Repeated Logins)
+- **WhatsApp:** Session saved after first QR scan
+- **LinkedIn:** Session persists after first login
+- **Facebook:** Session-based authentication
+- **Twitter:** Session-based authentication
+
+### Session Files Location
+- `AI_Employee_Vault/Logs/whatsapp_session.json`
+- `AI_Employee_Vault/Logs/sessions/linkedin_session.json`
+- `AI_Employee_Vault/Logs/sessions/facebook_session.json`
+- `AI_Employee_Vault/Logs/sessions/twitter_session.json`
+
+### Session Recovery
+- Delete session file to force re-login
+- Sessions expire after 30 days of inactivity
+- Auto-refresh sessions when active
+
+---
 
 ### 4. Task Prioritization
 
@@ -133,7 +229,47 @@ Every significant action (email sent, payment made, file moved) must be logged i
 - Social media posts about sensitive topics
 - Any action that cannot be easily undone
 
-### 10. Continuous Improvement
+## 🎓 System Capabilities
+
+### ✅ Currently Working
+- Gmail monitoring and reply generation
+- WhatsApp monitoring and reply generation
+- LinkedIn/Facebook/Twitter posting
+- AI-powered intent detection (10+ types)
+- Context-aware reply generation
+- Human approval workflow
+- Task planning and execution
+- File-based workflow management
+- Session persistence (no repeated logins)
+- Daemon mode for continuous operation
+
+### 🚧 In Development
+- LinkedIn message monitoring
+- Instagram integration
+- Odoo accounting system
+- CEO briefing reports
+- Multiple MCP servers
+- Advanced automation loops
+
+---
+
+## 📝 Logging & Audit Trail
+
+### 1. Always Log Important Actions
+Every significant action must be logged:
+- Email sent/received
+- WhatsApp messages
+- Social media posts
+- Task completions
+- Approvals given/rejected
+- System errors
+
+### Log Locations
+- `logs/ai_employee.log` - Main system log
+- `logs/actions.log` - Task planner actions
+- `AI_Employee_Vault/Logs/` - Session files and processed items
+
+---
 
 #### Weekly Review
 - Analyze task completion rates

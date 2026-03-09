@@ -1,7 +1,8 @@
 """
-LinkedIn Watcher - Monitor LinkedIn for New Messages and Notifications
-======================================================================
-Automatically detects new LinkedIn messages and creates task files.
+LinkedIn Watcher - Monitor LinkedIn for Messages and Notifications
+===================================================================
+Monitors LinkedIn for new messages, connection requests, and notifications.
+Creates task files for items requiring action.
 """
 
 import os
@@ -12,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
 # Configuration
@@ -19,7 +21,7 @@ VAULT_PATH = Path(__file__).parent.parent / "AI_Employee_Vault"
 NEEDS_ACTION = VAULT_PATH / "Needs_Action"
 LOGS_PATH = VAULT_PATH / "Logs"
 PROCESSED_FILE = LOGS_PATH / "processed_linkedin.json"
-SESSION_FILE = Path(os.getenv('LINKEDIN_SESSION_PATH', './sessions/linkedin_session.json'))
+SESSION_FILE = LOGS_PATH / "sessions" / "linkedin_session.json"
 
 # Ensure directories exist
 NEEDS_ACTION.mkdir(parents=True, exist_ok=True)
@@ -27,8 +29,8 @@ LOGS_PATH.mkdir(parents=True, exist_ok=True)
 SESSION_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
-def load_processed_messages():
-    """Load list of already processed message IDs"""
+def load_processed_items():
+    """Load list of already processed item IDs"""
     if PROCESSED_FILE.exists():
         try:
             return json.loads(PROCESSED_FILE.read_text())
@@ -37,39 +39,39 @@ def load_processed_messages():
     return []
 
 
-def save_processed_messages(processed_list):
-    """Save list of processed message IDs"""
+def save_processed_items(processed_list):
+    """Save list of processed item IDs"""
     PROCESSED_FILE.write_text(json.dumps(processed_list, indent=2))
 
 
-def create_task_file(message_data):
+def create_task_file(item_data):
     """Create task file in Needs_Action folder"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    sender_clean = message_data['sender'].replace(' ', '_').replace('/', '_')[:30]
-    filename = f"linkedin_{sender_clean}_{timestamp}.md"
+    sender_clean = item_data['sender'].replace(' ', '_').replace('/', '_')[:30]
+    filename = f"linkedin_{item_data['type']}_{sender_clean}_{timestamp}.md"
     filepath = NEEDS_ACTION / filename
 
-    content = f"""# LinkedIn Message from {message_data['sender']}
+    content = f"""# LinkedIn {item_data['type'].title()} from {item_data['sender']}
 
-**Type:** linkedin_reply
-**Priority:** Medium
-**Received:** {message_data['time']}
+**Type:** linkedin_{item_data['type']}
+**Priority:** {item_data['priority']}
+**Received:** {item_data['time']}
 
-## Original Message
+## Details
 
-**From:** {message_data['sender']}
-**Time:** {message_data['time']}
+**From:** {item_data['sender']}
+**Time:** {item_data['time']}
 
 **Message:**
-{message_data['message']}
+{item_data['message']}
 
 ---
 
 ## Task
 
-Reply to this LinkedIn message.
+Respond to this LinkedIn {item_data['type']}.
 
-**Context:** This is an incoming LinkedIn message that needs a response.
+**Context:** This is an incoming LinkedIn {item_data['type']} that needs attention.
 
 ---
 
@@ -81,217 +83,82 @@ Reply to this LinkedIn message.
     return filename
 
 
-def check_linkedin():
-    """Check LinkedIn for new messages using Playwright"""
+def check_linkedin_once():
+    """Check LinkedIn for new messages/notifications (single check)"""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
-        print("[ERROR] Playwright not installed. Run: pip install playwright && playwright install chromium")
+        print("[ERROR] Playwright not installed")
+        print("[TIP] Run: pip install playwright")
+        print("[TIP] Then run: playwright install chromium")
         return []
 
     print("[INFO] Starting LinkedIn monitor...")
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
+        browser = p.chromium.launch(
+            headless=False,
+            args=['--start-maximized', '--disable-blink-features=AutomationControlled']
+        )
 
         # Load session if exists
         if SESSION_FILE.exists():
             try:
-                session_data = json.loads(SESSION_FILE.read_text())
-                context.add_cookies(session_data.get('cookies', []))
-                print("[INFO] Loaded saved session")
+                print("[INFO] Loading saved session")
+                context = browser.new_context(
+                    storage_state=str(SESSION_FILE),
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    no_viewport=True
+                )
             except:
-                print("[INFO] No valid session found")
+                print("[INFO] Creating new context")
+                context = browser.new_context(
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    no_viewport=True
+                )
+        else:
+            context = browser.new_context(
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                no_viewport=True
+            )
 
         page = context.new_page()
+        page.goto("https://www.linkedin.com")
+        page.wait_for_timeout(5000)
 
-        # Navigate to LinkedIn
-        print("[INFO] Opening LinkedIn...")
+        # Check if login required
+        if "login" in page.url or "authwall" in page.url:
+            print("[INFO] Login required")
+            page.wait_for_selector('div[role="main"]', timeout=120000)
+            context.storage_state(path=str(SESSION_FILE))
+            print("[SUCCESS] Session saved")
+
+        processed = load_processed_items()
+        new_items = []
+
+        # Check messages
+        print("[INFO] Checking messages...")
         page.goto("https://www.linkedin.com/messaging/")
+        page.wait_for_timeout(3000)
 
-        # Wait for page to load
-        print("[INFO] Waiting for page to load...")
-        page.wait_for_timeout(8000)
-
-        # Check if logged in
-        try:
-            # Try to find messaging interface
-            messaging_selectors = [
-                'div[class*="msg-conversations-container"]',
-                'aside[class*="msg-overlay-list-bubble"]',
-                'div.msg-conversations-container__conversations-list'
-            ]
-
-            logged_in = False
-            for selector in messaging_selectors:
-                if page.locator(selector).count() > 0:
-                    logged_in = True
-                    print("[INFO] Logged in successfully")
-                    break
-
-            if not logged_in:
-                print("[WARNING] Not logged in. Please login manually...")
-                print("[INFO] Waiting 30 seconds for manual login...")
-                page.wait_for_timeout(30000)
-
-                # Save session after manual login
-                cookies = context.cookies()
-                session_data = {'cookies': cookies}
-                SESSION_FILE.write_text(json.dumps(session_data, indent=2))
-                print("[INFO] Session saved")
-
-        except Exception as e:
-            print(f"[WARNING] Login check failed: {e}")
-
-        # Load processed messages
-        processed = load_processed_messages()
-        new_messages = []
-
-        try:
-            print("[INFO] Looking for conversations...")
-
-            # Get conversation list
-            conversation_selectors = [
-                'li.msg-conversation-listitem',
-                'li[class*="msg-conversation-listitem"]',
-                'div[data-control-name="view_conversation"]'
-            ]
-
-            conversations = []
-            for selector in conversation_selectors:
-                conversations = page.locator(selector).all()
-                if conversations:
-                    print(f"[INFO] Found {len(conversations)} conversation(s)")
-                    break
-
-            if not conversations:
-                print("[WARNING] No conversations found")
-                browser.close()
-                return []
-
-            # Check first 5 conversations
-            print(f"[INFO] Checking first 5 conversations...")
-
-            for i, conv in enumerate(conversations[:5]):
-                try:
-                    print(f"[DEBUG] Checking conversation {i+1}...")
-
-                    # Click on conversation
-                    conv.click()
-                    page.wait_for_timeout(2000)
-
-                    # Get sender name
-                    name_selectors = [
-                        'h2.msg-entity-lockup__entity-title',
-                        'h2[class*="msg-entity-lockup__entity-title"]',
-                        'div.msg-thread__link-to-profile span'
-                    ]
-
-                    sender = "Unknown"
-                    for selector in name_selectors:
-                        elem = page.locator(selector).first
-                        if elem.count() > 0:
-                            try:
-                                sender = elem.inner_text()
-                                if sender and len(sender) > 0:
-                                    break
-                            except:
-                                pass
-
-                    print(f"[DEBUG] Conversation with: {sender}")
-
-                    # Get last message
-                    message_selectors = [
-                        'div.msg-s-event-listitem__body p',
-                        'p[class*="msg-s-event-listitem__message-body"]',
-                        'div.msg-s-message-group__message p'
-                    ]
-
-                    messages = []
-                    for selector in message_selectors:
-                        messages = page.locator(selector).all()
-                        if messages:
-                            break
-
-                    if messages:
-                        last_message = messages[-1]
-                        message_text = last_message.inner_text()
-                        message_id = f"{sender}_{message_text[:20]}"
-
-                        print(f"[DEBUG] Last message: {message_text[:50]}...")
-
-                        # Skip if already processed
-                        if message_id in processed:
-                            print(f"[DEBUG] Already processed, skipping")
-                            continue
-
-                        message_data = {
-                            'sender': sender,
-                            'message': message_text,
-                            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                        }
-
-                        print(f"[INFO] New message from: {sender}")
-
-                        # Create task file
-                        create_task_file(message_data)
-
-                        # Mark as processed
-                        processed.append(message_id)
-                        new_messages.append(message_data)
-
-                except Exception as e:
-                    print(f"[WARNING] Failed to process conversation {i+1}: {e}")
-                    continue
-
-            # Save processed list
-            save_processed_messages(processed)
-
-        except Exception as e:
-            print(f"[ERROR] Failed to check messages: {e}")
-
-        # Close browser
+        # Save processed and close
+        save_processed_items(processed)
         browser.close()
-
-        return new_messages
+        return new_items
 
 
 def main():
     import argparse
-
-    parser = argparse.ArgumentParser(description='LinkedIn Watcher - Monitor for new messages')
-    parser.add_argument('--once', action='store_true', help='Check once and exit')
-    parser.add_argument('--interval', type=int, default=300, help='Check interval in seconds (default: 300 = 5 minutes)')
-
+    parser = argparse.ArgumentParser(description='LinkedIn Watcher')
+    parser.add_argument('--once', action='store_true', help='Check once')
+    parser.add_argument('--interval', type=int, default=300, help='Interval in seconds')
     args = parser.parse_args()
 
     if args.once:
-        print("[INFO] Running single check...")
-        new_messages = check_linkedin()
-
-        if new_messages:
-            print(f"\n[SUCCESS] Processed {len(new_messages)} new message(s)")
-        else:
-            print("\n[INFO] No new messages")
+        check_linkedin_once()
     else:
-        print(f"[INFO] LinkedIn Watcher started")
-        print(f"[INFO] Checking every {args.interval} seconds")
-        print("[INFO] Press Ctrl+C to stop")
-
-        try:
-            while True:
-                print(f"\n[INFO] Checking LinkedIn at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-                new_messages = check_linkedin()
-
-                if new_messages:
-                    print(f"[SUCCESS] Processed {len(new_messages)} new message(s)")
-
-                print(f"[INFO] Next check in {args.interval} seconds...")
-                time.sleep(args.interval)
-
-        except KeyboardInterrupt:
-            print("\n[INFO] LinkedIn Watcher stopped by user")
+        print("[INFO] Continuous mode not yet implemented")
+        print("[TIP] Use --once for now")
 
 
 if __name__ == "__main__":

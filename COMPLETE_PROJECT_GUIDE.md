@@ -105,6 +105,130 @@ python mcp/business_mcp/server.py
 
 ---
 
+## 💡 Practical Workflows (Step-by-Step)
+
+### Gmail: Email Reply Automation
+
+```bash
+# Step 1: Detect new emails
+python scripts/gmail_watcher.py --once
+# Creates task file in Needs_Action/
+
+# Step 2: Generate AI reply
+python scripts/reply_generator.py
+# Reads email, generates reply, creates approval file in Needs_Approval/
+
+# Step 3: Approve reply
+# Open file in Obsidian: AI_Employee_Vault/Needs_Approval/APPROVAL_*.md
+# Change: status: pending → status: approved
+# Save (Ctrl+S)
+
+# Step 4: Send approved reply
+python scripts/reply_sender.py
+# Sends email and moves file to Done/
+```
+
+**What happens:** Email detected → AI generates reply → You approve → Email sent automatically
+
+---
+
+### WhatsApp: Message Reply Automation
+
+```bash
+# Step 1: Detect WhatsApp messages
+python scripts/whatsapp_watcher.py --once
+# First time: Browser opens, scan QR code with phone
+# Next times: Auto-login, detects unread messages
+# Creates task files in Needs_Action/
+
+# Step 2: Generate AI reply
+python scripts/reply_generator.py
+# Reads WhatsApp message, generates casual reply with emojis
+# Creates approval file in Needs_Approval/
+
+# Step 3: Approve reply
+# Open file in Obsidian: AI_Employee_Vault/Needs_Approval/APPROVAL_*.md
+# Change: status: pending → status: approved
+# Save (Ctrl+S)
+
+# Step 4: Send WhatsApp reply
+python scripts/reply_sender.py
+# Opens browser, types message, sends automatically
+# Moves file to Done/
+```
+
+**What happens:** WhatsApp message detected → AI generates reply → You approve → Message sent via WhatsApp Web
+
+**Note:** QR code scan only needed first time. Session saved for future use.
+
+---
+
+### LinkedIn: Post Content
+
+```bash
+# Method 1: Direct content (short posts)
+python scripts/linkedin_poster.py --content "Your post content here! #AI #Automation"
+
+# Method 2: From file (long posts - RECOMMENDED)
+# Create file: my_post.txt with your content
+python scripts/linkedin_poster.py --file my_post.txt
+
+# What happens:
+# 1. Browser opens LinkedIn
+# 2. If not logged in: 60 seconds to login manually
+# 3. "Start a post" clicked automatically
+# 4. Content filled automatically
+# 5. Browser stays open - you review and click "Post" manually
+# 6. Session saved for next time
+```
+
+**What happens:** Content provided → Browser opens → Post filled → You review and publish manually
+
+---
+
+### Facebook: Post Content
+
+```bash
+# Post to Facebook
+python scripts/social_poster.py pipeline "Your content here" --platforms facebook
+
+# Post to multiple platforms
+python scripts/social_poster.py pipeline "Your content" --platforms facebook linkedin twitter
+
+# What happens:
+# 1. Browser opens Facebook
+# 2. Login if needed (session saved)
+# 3. Post created automatically
+# 4. You review and publish
+```
+
+**What happens:** Content provided → Browser opens → Post created → You review and publish
+
+---
+
+### LinkedIn: Monitor Messages
+
+```bash
+# Step 1: Check LinkedIn messages
+python scripts/linkedin_watcher.py --once
+# First time: Browser opens, login manually
+# Next times: Auto-login, checks messages
+# Creates task files in Needs_Action/
+
+# Step 2: Generate reply
+python scripts/reply_generator.py
+
+# Step 3: Approve in Obsidian
+# Change: status: pending → status: approved
+
+# Step 4: Send reply
+python scripts/reply_sender.py
+```
+
+**What happens:** LinkedIn messages detected → AI generates reply → You approve → Reply sent
+
+---
+
 ## 🎯 Run by Tier
 
 ### Bronze Tier (Basic Automation)

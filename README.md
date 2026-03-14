@@ -223,12 +223,8 @@ python scripts/setup_windows_scheduler.py --setup
 
 ## 📚 Documentation
 
-- **[System Architecture](docs/ARCHITECTURE.md)** - Complete system design and integration guide
-- **[Windows Scheduler Setup](docs/WINDOWS_SCHEDULER_SETUP.md)** - OS-level automation
-- **[Complete Setup Guide](docs/SETUP.md)** - Detailed installation and configuration
-- **[Gmail Setup](docs/GMAIL_SETUP.md)** - How to get Gmail app password
-- **[LinkedIn Setup](docs/LINKEDIN_SETUP.md)** - LinkedIn automation notes
-- **[Quick Reference](docs/QUICK_REFERENCE.md)** - Command cheat sheet
+- **[Complete Project Summary](SUMMARY.md)** - Full system architecture with diagrams and workflows
+- **[Complete Project Guide](COMPLETE_PROJECT_GUIDE.md)** - Quick reference and command guide
 - **[Dashboard](AI_Employee_Vault/Dashboard.md)** - Real-time system status
 - **[Company Handbook](AI_Employee_Vault/Company_Handbook.md)** - Business rules and preferences
 
@@ -254,13 +250,14 @@ python scripts/setup_windows_scheduler.py --setup
 - ✅ Persistent session management (no repeated logins)
 
 ### 🏆 Gold Tier - Autonomous Employee (Complete)
-- ✅ **Instagram Integration** - Desktop mode with anti-detection
+- ✅ **Instagram Auto-Post** - Automatic Create → Post → Share flow (no manual clicks)
 - ✅ **Odoo Accounting System** - Self-hosted with local fallback
 - ✅ **Multiple MCP Servers** - Business, Accounting, Social Media MCPs
 - ✅ **CEO Briefing System** - Daily summaries and weekly business audits
 - ✅ **Social Media Analytics** - Post logging and performance tracking
-- ✅ **Ralph Wiggum Loop** - Autonomous multi-step task execution
-- ✅ **Comprehensive Documentation** - Full architecture guide (docs/ARCHITECTURE.md)
+- ✅ **Ralph Wiggum Loop** - Autonomous multi-step task execution with approval system
+- ✅ **Complete Workflow** - Inbox → Needs_Action → Approval → Done (fully automated)
+- ✅ **Comprehensive Documentation** - Full architecture guide (SUMMARY.md)
 - ✅ **Error Recovery** - Graceful degradation and retry logic
 - ✅ **Audit Logging** - Complete activity tracking
 - ✅ **Cross-domain Integration** - Personal + Business unified
@@ -352,11 +349,8 @@ Personal-AI-Employee/
 │   ├── Accounting/                 # Financial transactions & reports
 │   ├── Briefings/                  # CEO briefings & business audits
 │   └── Reports/                    # Generated reports & analytics
-├── docs/                           # Comprehensive documentation
-│   ├── ARCHITECTURE.md             # Complete system architecture
-│   ├── WINDOWS_SCHEDULER_SETUP.md  # Automation setup guide
-│   ├── SETUP.md                    # Installation guide
-│   └── QUICK_REFERENCE.md          # Command cheat sheet
+├── SUMMARY.md                      # Complete project documentation with diagrams
+├── COMPLETE_PROJECT_GUIDE.md       # Quick reference and command guide
 ├── logs/                           # System logs
 ├── .env                            # Credentials (create from .env.example)
 └── requirements.txt                # Python dependencies
@@ -515,7 +509,7 @@ ODOO_PASSWORD=admin
 ```
 - **Note:** If Odoo not configured, system automatically uses local JSON storage
 - No functionality loss without Odoo
-- See docs/ARCHITECTURE.md for Odoo setup guide
+- See SUMMARY.md for complete setup guide
 
 ## 📊 System Status
 
@@ -533,11 +527,24 @@ Shows:
 
 ## 🔄 Typical Workflow
 
-### Task Processing Workflow
-1. **Drop file** → `AI_Employee_Vault/Inbox/task.md`
-2. **System processes** → Creates plan in `Needs_Action/`
-3. **AI executes** → Performs actions (email, post, etc.)
-4. **Completion** → Moves to `Done/` with audit trail
+### Complete Automated Workflow
+1. **Input** → Drop file in `AI_Employee_Vault/Inbox/task.md`
+2. **Task Planner** → Analyzes task and creates execution plan in `Needs_Action/`
+3. **Ralph Wiggum Executor** → Processes plan and executes steps
+4. **Approval (if risky)** → Creates approval request in `Needs_Approval/`
+5. **Human Review** → User approves/rejects risky operations
+6. **Execution** → Completes task (email, social post, file operation, etc.)
+7. **Archive** → Moves all files to `Done/` with complete audit trail
+
+### Instagram Auto-Post Workflow
+1. **Content Ready** → Post content and image prepared
+2. **Browser Opens** → Instagram loads with saved session
+3. **Auto-Click Create** → System clicks Create button
+4. **Auto-Select Post** → System selects "Post" option
+5. **Auto-Upload** → Image uploaded automatically
+6. **Auto-Caption** → Caption filled automatically
+7. **Auto-Share** → Share button clicked automatically
+8. **Complete** → Post published, no manual clicks needed
 
 ### AI Reply Generation Workflow
 1. **Monitor** → Gmail/WhatsApp watchers detect new messages
@@ -570,7 +577,7 @@ Shows:
 | Lock file error | `rm logs/ai_employee.lock` |
 | Playwright error | `playwright install chromium` |
 
-See [Complete Setup Guide](docs/SETUP.md) for detailed troubleshooting.
+See [Complete Project Guide](COMPLETE_PROJECT_GUIDE.md) for detailed troubleshooting.
 
 ## 🔒 Security
 
@@ -630,8 +637,8 @@ See [Complete Setup Guide](docs/SETUP.md) for detailed troubleshooting.
 
 ## 🎓 Learning Resources
 
-- Read `docs/SETUP.md` for complete setup
-- Check `docs/QUICK_REFERENCE.md` for commands
+- Read `SUMMARY.md` for complete system architecture and workflows
+- Check `COMPLETE_PROJECT_GUIDE.md` for quick reference and commands
 - Review skill documentation in `.claude/skills/*/SKILL.md`
 - Test each skill individually before automation
 
@@ -652,10 +659,11 @@ This is a personal AI Employee system. Use responsibly and in compliance with se
 ## 🤝 Support
 
 For issues or questions:
-1. Check documentation in `docs/`
-2. Review logs in `logs/`
-3. Test individual skills
-4. Verify credentials in `.env`
+1. Check `SUMMARY.md` for complete documentation
+2. Review `COMPLETE_PROJECT_GUIDE.md` for commands
+3. Check logs in `logs/` and `AI_Employee_Vault/Logs/`
+4. Test individual skills
+5. Verify credentials in `.env`
 
 ---
 

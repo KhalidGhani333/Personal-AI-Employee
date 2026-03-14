@@ -223,6 +223,46 @@ def run_task_planner(verbose=False):
         return False
 
 
+def run_task_executor(verbose=False):
+    """
+    Runs the task executor to process Needs_Action files.
+
+    Args:
+        verbose: Enable verbose output
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        log_message("Running task executor...", "INFO")
+
+        # Run ralph wiggum loop
+        result = subprocess.run(
+            ['python', 'scripts/ralph_wiggum_loop.py'],
+            capture_output=True,
+            text=True,
+            timeout=600  # 10 minute timeout
+        )
+
+        if result.returncode == 0:
+            # Parse output for summary
+            output_lines = result.stdout.strip().split('\n')
+            for line in output_lines:
+                if 'success' in line.lower() or 'completed' in line.lower() or 'No tasks' in line:
+                    log_message(f"Task executor: {line.strip()}", "INFO")
+            return True
+        else:
+            log_message(f"Task executor failed: {result.stderr}", "ERROR")
+            return False
+
+    except subprocess.TimeoutExpired:
+        log_message("Task executor timeout (exceeded 10 minutes)", "ERROR")
+        return False
+    except Exception as e:
+        log_message(f"Error running task executor: {e}", "ERROR")
+        return False
+
+
 def get_folder_file_count(folder_path, extension='.md'):
     """
     Counts files in a folder with given extension.
@@ -375,10 +415,13 @@ def run_once(verbose=False):
 
     log_message("Single execution started", "INFO")
 
-    # Run task planner
-    success = run_task_planner(verbose)
+    # Run task planner (Inbox → Needs_Action)
+    planner_success = run_task_planner(verbose)
 
-    if success:
+    # Run task executor (Needs_Action → Done)
+    executor_success = run_task_executor(verbose)
+
+    if planner_success and executor_success:
         print("\n[OK] Execution completed successfully")
         log_message("Single execution completed successfully", "INFO")
         return 0
@@ -428,8 +471,11 @@ def run_daemon(interval, verbose=False):
             cycle_count += 1
             log_message(f"Starting cycle #{cycle_count}", "INFO")
 
-            # Run task planner
+            # Run task planner (Inbox → Needs_Action)
             run_task_planner(verbose)
+
+            # Run task executor (Needs_Action → Done)
+            run_task_executor(verbose)
 
             log_message(f"Cycle #{cycle_count} completed", "INFO")
 

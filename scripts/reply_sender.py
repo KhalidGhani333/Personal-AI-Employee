@@ -106,7 +106,7 @@ def send_email_reply(sender, subject, reply):
 
 
 def send_whatsapp_reply(sender, reply):
-    """Send WhatsApp reply using Playwright"""
+    """Send WhatsApp reply using persistent browser profile (auto-login!)"""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -115,47 +115,32 @@ def send_whatsapp_reply(sender, reply):
         print("[TIP] Then run: playwright install chromium")
         return False
 
+    # Use persistent browser profile
+    profile_path = VAULT_PATH / "Browser_Profiles" / "whatsapp_profile"
+    profile_path.mkdir(parents=True, exist_ok=True)
+
     print(f"[INFO] Sending WhatsApp reply to {sender}...")
 
     try:
         with sync_playwright() as p:
-            # Launch browser with proper window settings
-            browser = p.chromium.launch(
+            # Launch with persistent profile (auto-login!)
+            print("[INFO] Loading WhatsApp profile...")
+            context = p.chromium.launch_persistent_context(
+                user_data_dir=str(profile_path),
                 headless=False,
                 args=[
                     '--start-maximized',
                     '--disable-blink-features=AutomationControlled'
-                ]
+                ],
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                viewport={'width': 1366, 'height': 768}
             )
 
-            # Load complete browser state if exists
-            if SESSION_FILE.exists():
-                try:
-                    print("[INFO] Loading saved session")
-                    context = browser.new_context(
-                        storage_state=str(SESSION_FILE),
-                        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        no_viewport=True
-                    )
-                except Exception as e:
-                    print(f"[WARNING] Could not load session: {e}")
-                    print("[INFO] Creating new context")
-                    context = browser.new_context(
-                        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        no_viewport=True
-                    )
-            else:
-                print("[INFO] No session file found")
-                context = browser.new_context(
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    no_viewport=True
-                )
-
-            page = context.new_page()
+            page = context.pages[0] if context.pages else context.new_page()
 
             # Navigate to WhatsApp Web
             print("[INFO] Opening WhatsApp Web...")
-            page.goto("https://web.whatsapp.com")
+            page.goto("https://web.whatsapp.com", wait_until="domcontentloaded", timeout=60000)
 
             # Wait for WhatsApp to load
             print("[INFO] Waiting for WhatsApp to load...")
@@ -164,15 +149,34 @@ def send_whatsapp_reply(sender, reply):
             # Wait for chat list to be visible (indicates WhatsApp is ready)
             try:
                 page.wait_for_selector('div[aria-label="Chat list"]', timeout=15000)
-                print("[INFO] WhatsApp loaded successfully")
+                print("[SUCCESS] WhatsApp loaded - already logged in!")
             except:
                 # Check if QR code is present
                 if page.locator('canvas[aria-label="Scan this QR code to link a device!"]').count() > 0:
-                    print("[ERROR] Session expired or invalid - QR code detected")
-                    print("[TIP] Please run: python scripts/whatsapp_watcher.py")
-                    print("[TIP] Scan the QR code, wait for chats to load, then try again")
-                    browser.close()
-                    return False
+                    print("\n" + "=" * 60)
+                    print("LOGIN REQUIRED - FIRST TIME ONLY")
+                    print("=" * 60)
+                    print("\nPlease scan QR code with your phone:")
+                    print("1. Open WhatsApp on your phone")
+                    print("2. Go to Settings → Linked Devices")
+                    print("3. Tap 'Link a Device'")
+                    print("4. Scan the QR code on screen")
+                    print("\nYour login will be saved permanently!")
+                    print("You won't need to scan QR code again!")
+                    print("\nWaiting 3 minutes for QR scan...")
+                    print("=" * 60)
+
+                    try:
+                        page.wait_for_selector('div[aria-label="Chat list"]', timeout=180000)
+                        print("\n[SUCCESS] Login saved! Next time you'll be auto-logged in.")
+
+                        # Wait for chats to fully load
+                        page.wait_for_timeout(5000)
+
+                    except:
+                        print("[ERROR] Login timeout - QR code not scanned in time")
+                        context.close()
+                        return False
                 else:
                     print("[WARNING] Chat list not detected, but continuing...")
 
@@ -293,7 +297,15 @@ def send_whatsapp_reply(sender, reply):
             # Type the reply
             message_box.click()
             page.wait_for_timeout(500)
-            message_box.type(reply, delay=50)
+
+            # Type entire message at once (faster, prevents splitting)
+            # Replace newlines with Shift+Enter to keep it as one message
+            for line in reply.split('\n'):
+                message_box.type(line, delay=30)
+                if line != reply.split('\n')[-1]:  # Not the last line
+                    page.keyboard.press("Shift+Enter")
+                    page.wait_for_timeout(100)
+
             page.wait_for_timeout(1000)
 
             # Click send button
@@ -317,12 +329,16 @@ def send_whatsapp_reply(sender, reply):
                 return False
 
             send_button.click()
-            page.wait_for_timeout(2000)
+            page.wait_for_timeout(3000)
 
             print(f"[SUCCESS] WhatsApp message sent to {sender}")
 
-            # Close browser
-            browser.close()
+            # Wait 1 minute to ensure message is delivered
+            print("[INFO] Waiting 1 minute to ensure delivery...")
+            page.wait_for_timeout(60000)
+
+            # Close browser (profile auto-saves)
+            context.close()
             return True
 
     except Exception as e:

@@ -84,7 +84,7 @@ Respond to this LinkedIn {item_data['type']}.
 
 
 def check_linkedin_once():
-    """Check LinkedIn for new messages/notifications (single check)"""
+    """Check LinkedIn for new messages/notifications using persistent profile (auto-login!)"""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -93,72 +93,137 @@ def check_linkedin_once():
         print("[TIP] Then run: playwright install chromium")
         return []
 
+    # Use persistent browser profile
+    profile_path = VAULT_PATH / "Browser_Profiles" / "linkedin_profile"
+    profile_path.mkdir(parents=True, exist_ok=True)
+
     print("[INFO] Starting LinkedIn monitor...")
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(
+        # Launch with persistent profile (auto-login!)
+        print("[INFO] Loading LinkedIn profile...")
+        context = p.chromium.launch_persistent_context(
+            user_data_dir=str(profile_path),
             headless=False,
-            args=['--start-maximized', '--disable-blink-features=AutomationControlled']
+            args=['--start-maximized', '--disable-blink-features=AutomationControlled'],
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            viewport={'width': 1366, 'height': 768}
         )
 
-        # Load session if exists
-        if SESSION_FILE.exists():
-            try:
-                print("[INFO] Loading saved session")
-                context = browser.new_context(
-                    storage_state=str(SESSION_FILE),
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    no_viewport=True
-                )
-            except:
-                print("[INFO] Creating new context")
-                context = browser.new_context(
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    no_viewport=True
-                )
-        else:
-            context = browser.new_context(
-                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                no_viewport=True
-            )
+        page = context.pages[0] if context.pages else context.new_page()
 
-        page = context.new_page()
-        page.goto("https://www.linkedin.com")
-        page.wait_for_timeout(5000)
+        print("[INFO] Opening LinkedIn...")
+        page.goto("https://www.linkedin.com", wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(8000)
 
         # Check if login required
-        if "login" in page.url or "authwall" in page.url:
-            print("[INFO] Login required")
-            page.wait_for_selector('div[role="main"]', timeout=120000)
-            context.storage_state(path=str(SESSION_FILE))
-            print("[SUCCESS] Session saved")
+        if "login" in page.url.lower() or "authwall" in page.url.lower():
+            print("\n" + "=" * 60)
+            print("LOGIN REQUIRED - FIRST TIME ONLY")
+            print("=" * 60)
+            print("\nPlease login manually in the browser window.")
+            print("Your login will be saved permanently in the browser profile.")
+            print("You won't need to login again!")
+            print("\nWaiting 3 minutes for manual login...")
+            print("=" * 60)
+
+            try:
+                # Wait for successful login (feed page loads)
+                page.wait_for_url("**/feed/**", timeout=180000)
+                print("\n[SUCCESS] Login saved! Next time you'll be auto-logged in.")
+
+                page.wait_for_timeout(3000)
+
+            except:
+                print("[ERROR] Login timeout - please try again")
+                context.close()
+                return []
+        else:
+            print("[SUCCESS] Already logged in! (using saved profile)")
+
+        print("[INFO] LinkedIn loaded successfully")
 
         processed = load_processed_items()
         new_items = []
 
         # Check messages
-        print("[INFO] Checking messages...")
-        page.goto("https://www.linkedin.com/messaging/")
+        print("[INFO] Navigating to messages...")
+        page.goto("https://www.linkedin.com/messaging/", wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(8000)
+
+        # Check if we're actually logged in by looking for messaging elements
+        print("[INFO] Verifying login status...")
         page.wait_for_timeout(3000)
+
+        # Check if login is required on messaging page
+        if "login" in page.url.lower() or "authwall" in page.url.lower():
+            print("\n" + "=" * 60)
+            print("LOGIN REQUIRED ON MESSAGING PAGE")
+            print("=" * 60)
+            print("\nPlease login manually in the browser window.")
+            print("Browser will stay open for 3 minutes...")
+            print("=" * 60 + "\n")
+
+            page.wait_for_timeout(180000)
+
+            # Save session after login
+            try:
+                context.storage_state(path=str(SESSION_FILE))
+                print("[INFO] Session saved")
+            except:
+                pass
+
+        print("[INFO] Messages page loaded")
+        print("\n" + "=" * 60)
+        print("BROWSER WILL STAY OPEN FOR 2 MINUTES")
+        print("=" * 60)
+        print("\nYou can:")
+        print("- Check your messages manually")
+        print("- Verify login is working")
+        print("- Close browser manually anytime (Ctrl+W)")
+        print("\nAuto-closing in 2 minutes...")
+        print("=" * 60 + "\n")
+
+        page.wait_for_timeout(120000)
 
         # Save processed and close
         save_processed_items(processed)
-        browser.close()
+        print("[INFO] Closing browser...")
+        context.close()
         return new_items
 
 
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='LinkedIn Watcher')
-    parser.add_argument('--once', action='store_true', help='Check once')
-    parser.add_argument('--interval', type=int, default=300, help='Interval in seconds')
+    parser.add_argument('--once', action='store_true', help='Check once and exit')
+    parser.add_argument('--continuous', action='store_true', help='Run continuously')
+    parser.add_argument('--interval', type=int, default=300, help='Check interval in seconds (default: 300)')
     args = parser.parse_args()
 
-    if args.once:
-        check_linkedin_once()
+    if args.continuous:
+        print(f"[INFO] Running continuously (every {args.interval} seconds)")
+        print("[INFO] Press Ctrl+C to stop")
+
+        try:
+            while True:
+                print(f"\n[INFO] Running at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                new_items = check_linkedin_once()
+
+                if new_items:
+                    print(f"[SUCCESS] Found {len(new_items)} new item(s)")
+                else:
+                    print("[INFO] No new items")
+
+                print(f"[INFO] Next check in {args.interval} seconds...")
+                time.sleep(args.interval)
+
+        except KeyboardInterrupt:
+            print("\n[INFO] LinkedIn Watcher stopped by user")
     else:
-        print("[INFO] Continuous mode not yet implemented")
-        print("[TIP] Use --once for now")
+        # Default behavior: run once (whether --once is specified or not)
+        print("[INFO] Running single check...")
+        check_linkedin_once()
 
 
 if __name__ == "__main__":

@@ -285,7 +285,7 @@ def check_messages_once(page, processed):
 
 
 def check_whatsapp():
-    """Check WhatsApp Web for new messages using Playwright (single check)"""
+    """Check WhatsApp Web for new messages using persistent profile (auto-login!)"""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -294,37 +294,24 @@ def check_whatsapp():
         print("[TIP] Then run: playwright install chromium")
         return []
 
+    # Use persistent browser profile
+    profile_path = VAULT_PATH / "Browser_Profiles" / "whatsapp_profile"
+    profile_path.mkdir(parents=True, exist_ok=True)
+
     print("[INFO] Starting WhatsApp Web monitor...")
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(
+        # Launch with persistent profile (auto-login!)
+        print("[INFO] Loading WhatsApp profile...")
+        context = p.chromium.launch_persistent_context(
+            user_data_dir=str(profile_path),
             headless=False,
-            args=['--start-maximized', '--disable-blink-features=AutomationControlled']
+            args=['--start-maximized', '--disable-blink-features=AutomationControlled'],
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            viewport={'width': 1366, 'height': 768}
         )
 
-        # Load complete browser state if exists
-        if SESSION_FILE.exists():
-            try:
-                print("[INFO] Loading saved session")
-                context = browser.new_context(
-                    storage_state=str(SESSION_FILE),
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    no_viewport=True
-                )
-            except:
-                print("[INFO] No valid session found, creating new context")
-                context = browser.new_context(
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    no_viewport=True
-                )
-        else:
-            print("[INFO] No session file found, creating new context")
-            context = browser.new_context(
-                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                no_viewport=True
-            )
-
-        page = context.new_page()
+        page = context.pages[0] if context.pages else context.new_page()
 
         # Navigate to WhatsApp Web
         print("[INFO] Opening WhatsApp Web...")
@@ -338,8 +325,8 @@ def check_whatsapp():
             # Check if QR code is present
             if page.locator('canvas[aria-label="Scan this QR code to link a device!"]').count() > 0:
                 print("[INFO] QR Code detected - Please scan with your phone")
-                print("[INFO] Waiting for login (up to 2 minutes)...")
-                page.wait_for_selector('div[aria-label="Chat list"]', timeout=120000)
+                print("[INFO] Waiting for login (up to 3 minutes)...")
+                page.wait_for_selector('div[aria-label="Chat list"]', timeout=180000)
                 print("[SUCCESS] Login successful!")
 
                 # Save complete browser state (cookies, localStorage, sessionStorage, IndexedDB)

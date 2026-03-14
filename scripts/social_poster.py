@@ -620,29 +620,76 @@ def post_to_facebook(content, wait_for_confirmation=True):
 
 
 def create_text_image(text, output_path):
-    """Create a simple text image for Instagram"""
+    """Create an attractive text image for Instagram with gradient background"""
     try:
         from PIL import Image, ImageDraw, ImageFont
+        import random
     except ImportError:
         logger.error("Pillow not installed. Install with: pip install Pillow")
         return None
 
-    # Create image
+    # Create image with gradient background
     width, height = 1080, 1080
-    background_color = (255, 255, 255)  # White
-    text_color = (0, 0, 0)  # Black
 
-    image = Image.new('RGB', (width, height), background_color)
+    # Beautiful gradient color schemes
+    gradients = [
+        # Purple to Pink
+        {'start': (106, 17, 203), 'end': (37, 117, 252)},
+        # Orange to Pink
+        {'start': (251, 171, 126), 'end': (247, 206, 104)},
+        # Blue to Cyan
+        {'start': (0, 180, 216), 'end': (0, 119, 182)},
+        # Green to Blue
+        {'start': (17, 153, 142), 'end': (56, 239, 125)},
+        # Red to Orange
+        {'start': (235, 51, 73), 'end': (244, 92, 67)},
+    ]
+
+    gradient = random.choice(gradients)
+
+    # Create gradient background
+    image = Image.new('RGB', (width, height))
     draw = ImageDraw.Draw(image)
 
-    # Try to use a nice font, fallback to default
+    # Draw gradient
+    for y in range(height):
+        ratio = y / height
+        r = int(gradient['start'][0] * (1 - ratio) + gradient['end'][0] * ratio)
+        g = int(gradient['start'][1] * (1 - ratio) + gradient['end'][1] * ratio)
+        b = int(gradient['start'][2] * (1 - ratio) + gradient['end'][2] * ratio)
+        draw.rectangle([(0, y), (width, y + 1)], fill=(r, g, b))
+
+    # Add semi-transparent overlay for better text readability
+    overlay = Image.new('RGBA', (width, height), (0, 0, 0, 80))
+    image = image.convert('RGBA')
+    image = Image.alpha_composite(image, overlay)
+    image = image.convert('RGB')
+    draw = ImageDraw.Draw(image)
+
+    # Try to use a nice font
+    font_size = 50
     try:
-        font = ImageFont.truetype("arial.ttf", 40)
+        # Try multiple font options
+        font_options = [
+            "C:\\Windows\\Fonts\\arialbd.ttf",  # Arial Bold
+            "C:\\Windows\\Fonts\\calibrib.ttf",  # Calibri Bold
+            "C:\\Windows\\Fonts\\verdanab.ttf",  # Verdana Bold
+            "arial.ttf",
+        ]
+        font = None
+        for font_path in font_options:
+            try:
+                font = ImageFont.truetype(font_path, font_size)
+                break
+            except:
+                continue
+        if not font:
+            font = ImageFont.load_default()
     except:
         font = ImageFont.load_default()
 
     # Wrap text
-    max_width = width - 100
+    max_width = width - 150  # More padding
     lines = []
     words = text.split()
     current_line = []
@@ -660,14 +707,38 @@ def create_text_image(text, output_path):
     if current_line:
         lines.append(' '.join(current_line))
 
-    # Draw text centered
-    y = (height - len(lines) * 50) // 2
+    # Draw text centered with shadow for depth
+    text_color = (255, 255, 255)  # White text
+    shadow_color = (0, 0, 0)  # Black shadow
+    line_height = 60
+    y = (height - len(lines) * line_height) // 2
+
     for line in lines:
         bbox = draw.textbbox((0, 0), line, font=font)
         text_width = bbox[2] - bbox[0]
         x = (width - text_width) // 2
+
+        # Draw shadow (offset by 3 pixels)
+        draw.text((x + 3, y + 3), line, fill=shadow_color, font=font)
+        # Draw main text
         draw.text((x, y), line, fill=text_color, font=font)
-        y += 50
+        y += line_height
+
+    # Add watermark/branding at bottom
+    try:
+        watermark_font = ImageFont.truetype("C:\\Windows\\Fonts\\arial.ttf", 25)
+    except:
+        watermark_font = ImageFont.load_default()
+
+    watermark_text = "Created with AI 🤖"
+    bbox = draw.textbbox((0, 0), watermark_text, font=watermark_font)
+    watermark_width = bbox[2] - bbox[0]
+    watermark_x = (width - watermark_width) // 2
+    watermark_y = height - 80
+
+    # Draw watermark with shadow
+    draw.text((watermark_x + 2, watermark_y + 2), watermark_text, fill=(0, 0, 0, 100), font=watermark_font)
+    draw.text((watermark_x, watermark_y), watermark_text, fill=(255, 255, 255, 200), font=watermark_font)
 
     # Save image
     image.save(output_path)
@@ -676,14 +747,16 @@ def create_text_image(text, output_path):
 
 
 def post_to_instagram(caption, wait_for_confirmation=True, image_path=None):
-    """Post to Instagram using Playwright browser automation (Desktop)"""
+    """Post to Instagram using persistent browser profile (auto-login!)"""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         logger.error("Playwright not installed")
         return False
 
-    session_file = SESSION_PATH / "instagram_session.json"
+    # Use persistent browser profile instead of session file
+    profile_path = VAULT_PATH / "Browser_Profiles" / "instagram_profile"
+    profile_path.mkdir(parents=True, exist_ok=True)
 
     # Generate text image if no image provided
     if not image_path:
@@ -698,42 +771,21 @@ def post_to_instagram(caption, wait_for_confirmation=True, image_path=None):
     logger.info("Starting Instagram posting...")
 
     with sync_playwright() as p:
-        # Use DESKTOP user agent with anti-detection
-        browser = p.chromium.launch(
+        # Launch with persistent profile (auto-login!)
+        logger.info("Loading Instagram profile...")
+        context = p.chromium.launch_persistent_context(
+            user_data_dir=str(profile_path),
             headless=False,
             args=[
                 '--start-maximized',
                 '--disable-blink-features=AutomationControlled'
-            ]
+            ],
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            viewport={'width': 1366, 'height': 768},
+            locale='en-US'
         )
 
-        # Load complete browser state if exists
-        if session_file.exists():
-            try:
-                logger.info("Loading saved Instagram session")
-                context = browser.new_context(
-                    storage_state=str(session_file),
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    no_viewport=True,
-                    locale='en-US'
-                )
-            except Exception as e:
-                logger.warning(f"Could not load session: {e}")
-                logger.info("Creating new context")
-                context = browser.new_context(
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    no_viewport=True,
-                    locale='en-US'
-                )
-        else:
-            logger.info("No session file found, creating new context")
-            context = browser.new_context(
-                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                no_viewport=True,
-                locale='en-US'
-            )
-
-        page = context.new_page()
+        page = context.pages[0] if context.pages else context.new_page()
 
         # Hide webdriver property
         page.add_init_script("""
@@ -784,60 +836,148 @@ def post_to_instagram(caption, wait_for_confirmation=True, image_path=None):
                 logger.info("✓ Already logged in!")
                 page.wait_for_timeout(5000)  # Wait for full page load
 
-            # Click "Create" button (+ icon on left sidebar)
-            logger.info("Looking for Create button (+ icon on left sidebar)...")
-            create_selectors = [
-                # Left sidebar + icon
-                'a[href="#"][role="link"] svg',
-                'svg[aria-label="New post"]',
-                'svg[aria-label="Create"]',
-                '[aria-label="New post"]',
-                '[aria-label="Create"]',
-                'a[href="#"]',
-                # Try finding by position in nav
-                'nav a[href="#"]',
-                'div[role="link"]',
-                # More generic
-                'svg path[d*="M2 12"]',  # Plus icon path
-            ]
+            # Click "Create" button - Use keyboard shortcut (most reliable!)
+            logger.info("Opening Create dialog...")
 
-            clicked = False
-            for attempt in range(10):  # Try for 20 seconds
-                logger.info(f"Attempt {attempt + 1}/10 to find Create button...")
-                for selector in create_selectors:
-                    try:
-                        elements = page.locator(selector).all()
-                        logger.info(f"  Trying selector: {selector} - found {len(elements)} elements")
-                        for elem in elements:
-                            try:
-                                if elem.is_visible():
-                                    # Check if it's the right element by checking parent or nearby text
-                                    elem.click()
-                                    clicked = True
-                                    logger.info(f"✓ Clicked Create button with selector: {selector}")
+            # Method 1: Use keyboard shortcut (works even if UI changes!)
+            logger.info("Trying keyboard shortcut: Ctrl+Alt+N")
+            page.keyboard.press("Control+Alt+N")
+            page.wait_for_timeout(3000)
+
+            # Check if modal opened
+            if page.locator('input[type="file"]').count() > 0:
+                logger.info("✓ Create modal opened via keyboard shortcut!")
+                clicked = True
+            else:
+                logger.info("Keyboard shortcut didn't work, trying to find Create button...")
+
+                # Wait for page to be fully loaded
+                page.wait_for_timeout(3000)
+
+                # Take screenshot for debugging
+                try:
+                    debug_screenshot = LOGS_PATH / f"instagram_debug_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                    page.screenshot(path=str(debug_screenshot))
+                    logger.info(f"Debug screenshot saved: {debug_screenshot}")
+                except:
+                    pass
+
+                # Method 2: Try clicking the button
+                create_selectors = [
+                    # Text-based selectors (most reliable)
+                    'text="Create"',
+                    'a:has-text("Create")',
+                    'span:has-text("Create")',
+
+                    # Aria labels
+                    '[aria-label="Create"]',
+                    '[aria-label="New post"]',
+
+                    # Navigation links
+                    'nav a[href="#"]',
+
+                    # XPath selectors
+                    'xpath=//span[contains(text(), "Create")]',
+                    'xpath=//a[contains(@aria-label, "Create")]',
+                ]
+
+                clicked = False
+                for attempt in range(10):  # Try for 20 seconds
+                    logger.info(f"Attempt {attempt + 1}/10 to find Create button...")
+                    for selector in create_selectors:
+                        try:
+                            elements = page.locator(selector).all()
+                            logger.info(f"  Trying selector: {selector} - found {len(elements)} elements")
+
+                            if len(elements) > 0:
+                                for idx, elem in enumerate(elements):
+                                    try:
+                                        if elem.is_visible(timeout=1000):
+                                            elem.scroll_into_view_if_needed()
+                                            page.wait_for_timeout(500)
+                                            elem.click()
+                                            clicked = True
+                                            logger.info(f"✓ Clicked Create button with selector: {selector} (element {idx})")
+                                            page.wait_for_timeout(3000)
+
+                                            # Verify modal opened
+                                            if page.locator('input[type="file"]').count() > 0:
+                                                logger.info("✓ Create modal opened successfully!")
+                                                break
+                                            else:
+                                                logger.warning("Modal didn't open, trying next element...")
+                                                clicked = False
+                                                continue
+                                    except Exception as e:
+                                        logger.debug(f"  Failed to click element {idx}: {str(e)[:50]}")
+                                        continue
+                                if clicked:
                                     break
-                            except Exception as e:
-                                logger.debug(f"  Failed to click element: {e}")
-                                continue
-                        if clicked:
-                            break
-                    except Exception as e:
-                        logger.debug(f"  Selector {selector} failed: {e}")
-                        continue
-                if clicked:
-                    break
-                page.wait_for_timeout(2000)
+                        except Exception as e:
+                            logger.debug(f"  Selector {selector} failed: {str(e)[:50]}")
+                            continue
+                    if clicked:
+                        break
+                    page.wait_for_timeout(2000)
 
             if not clicked:
-                logger.error("Could not find Create button automatically")
+                logger.error("Could not open Create dialog automatically")
                 logger.info("=" * 60)
                 logger.info("MANUAL ACTION REQUIRED")
                 logger.info("=" * 60)
-                logger.info("Please click the '+' (Create) button on the left sidebar manually")
-                logger.info("Browser will wait for 2 minutes...")
+                logger.info("Please do ONE of the following:")
+                logger.info("1. Press Ctrl+Alt+N on your keyboard")
+                logger.info("2. Click the '+' (Create) button on the left sidebar")
+                logger.info("3. Then select 'Post' from the menu")
+                logger.info("\nBrowser will wait for 3 minutes...")
                 logger.info("=" * 60)
-                page.wait_for_timeout(120000)
-                # Continue anyway, user might have clicked it
+                page.wait_for_timeout(180000)
+                # Continue anyway, user might have opened it
+
+            # After clicking Create, click "Post" option from menu
+            logger.info("Looking for 'Post' option in Create menu...")
+            page.wait_for_timeout(2000)
+
+            post_option_selectors = [
+                'text="Post"',
+                'span:has-text("Post")',
+                '[role="menuitem"]:has-text("Post")',
+                'div:has-text("Post")',
+                'xpath=//span[text()="Post"]',
+                'xpath=//div[contains(text(), "Post")]',
+            ]
+
+            post_clicked = False
+            for attempt in range(5):
+                logger.info(f"Attempt {attempt + 1}/5 to find Post option...")
+                for selector in post_option_selectors:
+                    try:
+                        elements = page.locator(selector).all()
+                        if len(elements) > 0:
+                            for idx, elem in enumerate(elements):
+                                try:
+                                    if elem.is_visible(timeout=1000):
+                                        elem.click()
+                                        post_clicked = True
+                                        logger.info(f"✓ Clicked 'Post' option with selector: {selector}")
+                                        page.wait_for_timeout(2000)
+                                        break
+                                except Exception as e:
+                                    logger.debug(f"  Failed to click Post element {idx}: {str(e)[:50]}")
+                                    continue
+                            if post_clicked:
+                                break
+                    except Exception as e:
+                        logger.debug(f"  Selector {selector} failed: {str(e)[:50]}")
+                        continue
+                if post_clicked:
+                    break
+                page.wait_for_timeout(1000)
+
+            if post_clicked:
+                logger.info("✓ Post option selected successfully!")
+            else:
+                logger.warning("Could not find Post option, continuing anyway...")
 
             page.wait_for_timeout(3000)
 
@@ -974,16 +1114,60 @@ def post_to_instagram(caption, wait_for_confirmation=True, image_path=None):
                 logger.warning("Could not find caption field, continuing anyway...")
 
             logger.info("=" * 60)
-            logger.info("STEP 3: CLICK SHARE BUTTON")
-            logger.info("=" * 60)
-            logger.info("Everything is ready!")
-            logger.info("Just click the 'Share' button to post")
-            logger.info("=" * 60)
-            logger.info("Browser will stay open for 5 MINUTES")
+            logger.info("STEP 3: AUTO-CLICKING SHARE BUTTON")
             logger.info("=" * 60)
 
-            # Wait for user to click Share
-            page.wait_for_timeout(300000)
+            # Wait a bit for everything to be ready
+            page.wait_for_timeout(3000)
+
+            # Try to find and click Share button automatically
+            share_button_selectors = [
+                'button:has-text("Share")',
+                '[role="button"]:has-text("Share")',
+                'button:text("Share")',
+                'div[role="button"]:has-text("Share")',
+                '//button[contains(text(), "Share")]',
+                '//div[@role="button" and contains(text(), "Share")]',
+            ]
+
+            share_clicked = False
+            for attempt in range(10):  # Try for 20 seconds
+                logger.info(f"Looking for Share button (attempt {attempt + 1}/10)...")
+                for selector in share_button_selectors:
+                    try:
+                        elements = page.locator(selector).all()
+                        if len(elements) > 0:
+                            for idx, elem in enumerate(elements):
+                                try:
+                                    if elem.is_visible(timeout=1000):
+                                        elem.scroll_into_view_if_needed()
+                                        page.wait_for_timeout(500)
+                                        elem.click()
+                                        share_clicked = True
+                                        logger.info(f"✓ Clicked Share button with selector: {selector}")
+                                        page.wait_for_timeout(5000)  # Wait for post to complete
+                                        break
+                                except Exception as e:
+                                    logger.debug(f"  Failed to click element {idx}: {str(e)[:50]}")
+                                    continue
+                            if share_clicked:
+                                break
+                    except Exception as e:
+                        logger.debug(f"  Selector {selector} failed: {str(e)[:50]}")
+                        continue
+                if share_clicked:
+                    break
+                page.wait_for_timeout(2000)
+
+            if share_clicked:
+                logger.info("=" * 60)
+                logger.info("✓ Instagram post shared successfully!")
+                logger.info("=" * 60)
+                page.wait_for_timeout(3000)  # Wait to see confirmation
+            else:
+                logger.warning("Could not find Share button automatically")
+                logger.info("Waiting 30 seconds for manual action...")
+                page.wait_for_timeout(30000)
 
             browser.close()
             logger.info("✓ Instagram posting completed!")
@@ -1001,7 +1185,7 @@ def post_to_instagram(caption, wait_for_confirmation=True, image_path=None):
 # ORCHESTRATOR FUNCTIONS
 # ============================================================================
 
-def run_social_posting_pipeline(topic, platforms=None, auto_post=False):
+def run_social_posting_pipeline(topic, platforms=None, auto_post=False, image_path=None):
     """
     Main orchestrator function for social media posting pipeline
 
@@ -1015,6 +1199,7 @@ def run_social_posting_pipeline(topic, platforms=None, auto_post=False):
         topic: Topic/content for posts
         platforms: List of platforms ['linkedin', 'twitter', 'facebook', 'instagram']
         auto_post: If True, posts automatically without confirmation (not recommended)
+        image_path: Path to image file (for Instagram posts)
     """
     if platforms is None:
         platforms = ['linkedin', 'twitter', 'facebook', 'instagram']
@@ -1095,7 +1280,7 @@ def run_social_posting_pipeline(topic, platforms=None, auto_post=False):
         elif platform == 'facebook':
             success = post_to_facebook(content, wait_for_confirmation=not auto_post)
         elif platform == 'instagram':
-            success = post_to_instagram(content)
+            success = post_to_instagram(content, image_path=image_path)
 
         results.append((platform, success))
 
@@ -1194,6 +1379,11 @@ def main():
         action='store_true',
         help='Auto-post without manual confirmation (not recommended)'
     )
+    pipeline_parser.add_argument(
+        '--image',
+        type=str,
+        help='Path to image file (for Instagram posts)'
+    )
 
     # Post command
     post_parser = subparsers.add_parser('post', help='Post approved content')
@@ -1236,7 +1426,8 @@ def main():
         run_social_posting_pipeline(
             args.topic,
             platforms=args.platforms,
-            auto_post=args.auto_post
+            auto_post=args.auto_post,
+            image_path=args.image if hasattr(args, 'image') else None
         )
 
     elif args.command == 'post':

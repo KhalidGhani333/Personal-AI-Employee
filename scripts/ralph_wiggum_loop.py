@@ -481,19 +481,53 @@ Please review and update the status above to either:
 
         # Check if approval required
         if step.get('requires_approval'):
-            approval_file = self.request_approval(
-                task_analysis['task_name'],
-                step['action'],
-                "This operation requires human approval for safety"
-            )
+            # Check for existing approval files first
+            task_name = task_analysis['task_name']
+            existing_approvals = list(self.needs_approval.glob(f"APPROVAL_*_{task_name}.md"))
 
-            logger.info(f"Waiting for approval: {approval_file.name}")
-            return {
-                "success": False,
-                "status": "awaiting_approval",
-                "approval_file": str(approval_file),
-                "message": "Waiting for human approval"
-            }
+            approval_file = None
+            approval_status = None
+
+            # Check if any existing approval is approved
+            for existing_file in existing_approvals:
+                status = self.check_approval(existing_file)
+                if status == "approved":
+                    logger.info(f"Found approved approval: {existing_file.name}")
+                    # Move approval to Done and continue execution
+                    done_file = self.done / existing_file.name
+                    existing_file.rename(done_file)
+                    approval_status = "approved"
+                    break
+                elif status == "rejected":
+                    logger.info(f"Task rejected: {existing_file.name}")
+                    return {
+                        "success": False,
+                        "status": "rejected",
+                        "message": "Task rejected by human"
+                    }
+                elif status == "pending":
+                    approval_file = existing_file
+                    approval_status = "pending"
+
+            # If no approved status found and no pending approval, create new request
+            if approval_status != "approved":
+                if not approval_file:
+                    approval_file = self.request_approval(
+                        task_analysis['task_name'],
+                        step['action'],
+                        "This operation requires human approval for safety"
+                    )
+
+                logger.info(f"Waiting for approval: {approval_file.name}")
+                return {
+                    "success": False,
+                    "status": "awaiting_approval",
+                    "approval_file": str(approval_file),
+                    "message": "Waiting for human approval"
+                }
+
+            # If approved, continue with execution
+            logger.info("Approval granted, continuing execution...")
 
         # Execute based on task type
         try:

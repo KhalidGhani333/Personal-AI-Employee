@@ -2,6 +2,8 @@
 
 **Transform Your Business with Autonomous AI Automation**
 
+> **🚀 Quick Start:** Want to test/run the project immediately? See **[COMPLETE_PROJECT_GUIDE.md](COMPLETE_PROJECT_GUIDE.md)** for all commands and workflows.
+
 ## What Is This Project?
 
 The Personal AI Employee is a complete autonomous business automation system that acts as your digital Full-Time Equivalent (FTE) employee. It monitors your communications across multiple channels (Gmail, WhatsApp, LinkedIn), generates intelligent AI-powered replies, manages your social media presence, tracks your finances, and provides executive business intelligence reports - all while you focus on growing your business.

@@ -254,22 +254,55 @@ python scripts/setup_windows_scheduler.py --remove
 
 ---
 
-### Option 2: Manual Continuous Mode (All Services)
+### Option 2: Batch Script (Easiest - All Services at Once)
+
+**Simple one-command startup for all services:**
+
+```bash
+# PowerShell
+.\start_ai_employee.bat
+
+# CMD
+start_ai_employee.bat
+```
+
+**What it does:**
+- Starts 6 services simultaneously in background
+- Gmail Watcher (5 min interval)
+- WhatsApp Watcher (2 min interval)
+- LinkedIn Watcher (5 min interval)
+- Reply Generator (5 min interval)
+- Reply Sender (10 min interval)
+- Main Orchestrator (5 min interval)
+
+**Requirements:**
+- `.env` file must be configured
+- Python installed and in PATH
+
+**To stop all services:**
+```bash
+.\stop_ai_employee.bat
+```
+
+---
+
+### Option 3: Manual Continuous Mode (Individual Commands)
+
+**If you want to run services individually:**
 
 ```bash
 # Run all in background (Windows)
-start /B python scripts/gmail_watcher.py --continuous --interval 300
-start /B python scripts/whatsapp_watcher.py --continuous --interval 120
+start /B python scripts/gmail_watcher.py --interval 300
+start /B python scripts/whatsapp_watcher.py --interval 120
 start /B python scripts/linkedin_watcher.py --continuous --interval 300
 start /B python scripts/reply_generator.py --continuous --interval 300
 start /B python scripts/reply_sender.py --continuous --interval 600
-start /B python scripts/linkedin_auto_poster.py --schedule --interval 1800
 start /B python scripts/run_ai_employee.py --daemon --interval 300
 ```
 
 ---
 
-### Option 3: One-Time Execution (Manual Check)
+### Option 4: One-Time Execution (Manual Check)
 
 ```bash
 # Check all channels

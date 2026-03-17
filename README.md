@@ -213,13 +213,28 @@ python scripts/gmail_watcher.py --once
 ```
 
 ### 4. Start Full Automation
-```bash
-# Option 1: Main orchestrator (recommended)
-python scripts/run_ai_employee.py --daemon
 
-# Option 2: Windows Task Scheduler (production)
+**Option 1: Batch Script (Easiest - Recommended)**
+```bash
+# PowerShell
+.\start_ai_employee.bat
+
+# CMD
+start_ai_employee.bat
+```
+Starts all 6 services at once (Gmail, WhatsApp, LinkedIn watchers + Reply Generator + Reply Sender + Main Orchestrator)
+
+**Option 2: Main Orchestrator Only**
+```bash
+python scripts/run_ai_employee.py --daemon
+```
+Runs the main orchestrator in daemon mode (processes Inbox and Needs_Action tasks)
+
+**Option 3: Windows Task Scheduler (24/7 Production)**
+```bash
 python scripts/setup_windows_scheduler.py --setup
 ```
+Sets up automated background tasks that run even after reboot
 
 **That's it!** Your AI Employee is now running. Check `AI_Employee_Vault/Dashboard.md` for status.
 

@@ -313,32 +313,82 @@ def check_whatsapp():
 
         page = context.pages[0] if context.pages else context.new_page()
 
-        # Navigate to WhatsApp Web
+        # Navigate to WhatsApp Web with extended timeout and retry
         print("[INFO] Opening WhatsApp Web...")
-        page.goto("https://web.whatsapp.com")
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                page.goto("https://web.whatsapp.com", timeout=60000)  # 60 second timeout
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"[WARNING] Connection attempt {attempt + 1} failed, retrying...")
+                    time.sleep(5)
+                else:
+                    raise Exception(f"Failed to connect after {max_retries} attempts: {e}")
 
         # Wait for login
         try:
             print("[INFO] Waiting for page to load...")
-            page.wait_for_timeout(10000)
-
-            # Check if QR code is present
-            if page.locator('canvas[aria-label="Scan this QR code to link a device!"]').count() > 0:
-                print("[INFO] QR Code detected - Please scan with your phone")
-                print("[INFO] Waiting for login (up to 3 minutes)...")
-                page.wait_for_selector('div[aria-label="Chat list"]', timeout=180000)
-                print("[SUCCESS] Login successful!")
-
-                # Save complete browser state (cookies, localStorage, sessionStorage, IndexedDB)
-                context.storage_state(path=str(SESSION_FILE))
-                print("[INFO] Session saved (complete browser state)")
-
-            print("[INFO] Waiting for chats to load...")
             page.wait_for_timeout(5000)
+
+            # Check if already logged in or need to scan QR
+            chat_list_selectors = [
+                'div[aria-label="Chat list"]',
+                '[data-testid="chat-list"]',
+                'div[id="pane-side"]',
+                'div[role="grid"]'
+            ]
+
+            # Try to find chat list (already logged in)
+            chat_list_found = False
+            for selector in chat_list_selectors:
+                if page.locator(selector).count() > 0:
+                    print("[INFO] Already logged in - chat list found")
+                    chat_list_found = True
+                    break
+
+            # If not logged in, wait for QR code scan
+            if not chat_list_found:
+                print("[INFO] Not logged in - waiting for QR code or login...")
+                page.wait_for_timeout(5000)
+
+                # Check for QR code
+                qr_selectors = [
+                    'canvas[aria-label="Scan this QR code to link a device!"]',
+                    'canvas[aria-label*="QR"]',
+                    'div[data-ref]',  # QR code container
+                ]
+
+                qr_found = False
+                for selector in qr_selectors:
+                    if page.locator(selector).count() > 0:
+                        print("[INFO] QR Code detected - Please scan with your phone")
+                        qr_found = True
+                        break
+
+                if qr_found:
+                    print("[INFO] Waiting for login (up to 3 minutes)...")
+                    # Wait for any chat list selector
+                    for selector in chat_list_selectors:
+                        try:
+                            page.wait_for_selector(selector, timeout=180000)
+                            print("[SUCCESS] Login successful!")
+                            context.storage_state(path=str(SESSION_FILE))
+                            print("[INFO] Session saved")
+                            break
+                        except:
+                            continue
+                else:
+                    print("[WARNING] Neither chat list nor QR code found - waiting longer...")
+                    page.wait_for_timeout(15000)
+
+            print("[INFO] Waiting for chats to fully load...")
+            page.wait_for_timeout(10000)
 
         except Exception as e:
             print(f"[ERROR] Failed to login: {e}")
-            browser.close()
+            context.close()
             return []
 
         # Load processed messages and check
@@ -346,7 +396,7 @@ def check_whatsapp():
         new_messages = check_messages_once(page, processed)
 
         # Close browser
-        browser.close()
+        context.close()
 
         return new_messages
 
@@ -400,7 +450,7 @@ def watch_continuous(check_interval=300):
         # Navigate to WhatsApp Web
         print("[INFO] Opening WhatsApp Web...")
         try:
-            page.goto("https://web.whatsapp.com", timeout=60000)
+            page.goto("https://web.whatsapp.com", timeout=120000)
         except Exception as e:
             print(f"[ERROR] Failed to open WhatsApp Web: {e}")
             browser.close()

@@ -43,6 +43,8 @@ AI_Employee_Vault/Needs_Action/
 AI_Employee_Vault/Done/
 AI_Employee_Vault/Archive/
 AI_Employee_Vault/Inbox/
+AI_Employee_Vault/Browser_Profiles/
+AI_Employee_Vault/Plans/
 logs/
 *.log
 sessions/

@@ -174,17 +174,82 @@ def check_linkedin_once():
                 pass
 
         print("[INFO] Messages page loaded")
-        print("\n" + "=" * 60)
-        print("BROWSER WILL STAY OPEN FOR 2 MINUTES")
-        print("=" * 60)
-        print("\nYou can:")
-        print("- Check your messages manually")
-        print("- Verify login is working")
-        print("- Close browser manually anytime (Ctrl+W)")
-        print("\nAuto-closing in 2 minutes...")
-        print("=" * 60 + "\n")
 
-        page.wait_for_timeout(120000)
+        # Try to detect messages
+        try:
+            print("[INFO] Scanning for messages...")
+            page.wait_for_timeout(5000)  # Wait for messages to load
+
+            # Try multiple selectors for message list items
+            message_selectors = [
+                'li.msg-conversation-listitem',
+                'li[class*="msg-conversation"]',
+                'div[class*="msg-conversation-card"]',
+                'ul.msg-conversations-container__conversations-list li'
+            ]
+
+            messages_found = False
+            for selector in message_selectors:
+                try:
+                    message_items = page.query_selector_all(selector)
+                    if message_items and len(message_items) > 0:
+                        print(f"[SUCCESS] Found {len(message_items)} conversations using selector: {selector}")
+                        messages_found = True
+
+                        # Process each message
+                        for idx, item in enumerate(message_items[:5]):  # Check first 5 messages
+                            try:
+                                # Extract message data
+                                sender_elem = item.query_selector('h3, span[class*="participant"], div[class*="name"]')
+                                message_elem = item.query_selector('p, span[class*="message"], div[class*="preview"]')
+                                time_elem = item.query_selector('time, span[class*="time"]')
+                                unread_elem = item.query_selector('[class*="unread"], [class*="badge"]')
+
+                                sender = sender_elem.inner_text().strip() if sender_elem else f"Unknown_{idx}"
+                                message_preview = message_elem.inner_text().strip() if message_elem else "No preview"
+                                time_str = time_elem.get_attribute('datetime') if time_elem else datetime.now().isoformat()
+                                is_unread = unread_elem is not None
+
+                                # Create unique ID for this message
+                                message_id = f"{sender}_{time_str}"
+
+                                # Check if already processed
+                                if message_id not in processed and is_unread:
+                                    print(f"[NEW] Unread message from: {sender}")
+
+                                    # Create task file
+                                    item_data = {
+                                        'type': 'message',
+                                        'sender': sender,
+                                        'message': message_preview,
+                                        'time': time_str,
+                                        'priority': 'high' if is_unread else 'normal'
+                                    }
+
+                                    create_task_file(item_data)
+                                    processed.append(message_id)
+                                    new_items.append(item_data)
+
+                            except Exception as e:
+                                print(f"[WARNING] Error processing message {idx}: {e}")
+                                continue
+
+                        break  # Found messages, no need to try other selectors
+
+                except Exception as e:
+                    continue
+
+            if not messages_found:
+                print("[INFO] No messages found or unable to detect message elements")
+                print("[INFO] Browser will stay open for 30 seconds for manual inspection...")
+                page.wait_for_timeout(30000)
+            else:
+                print(f"[SUCCESS] Processed {len(new_items)} new message(s)")
+
+        except Exception as e:
+            print(f"[ERROR] Error scanning messages: {e}")
+            print("[INFO] Browser will stay open for 30 seconds...")
+            page.wait_for_timeout(30000)
 
         # Save processed and close
         save_processed_items(processed)

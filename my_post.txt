@@ -1,0 +1,9 @@
+🚀 Excited to share my latest project: Personal AI Employee!
+
+Built an autonomous system that handles emails, WhatsApp messages, and LinkedIn interactions using Claude AI and Playwright automation. The AI generates intelligent replies, and I approve them before sending - perfect balance of automation and human oversight.
+
+Key features: Gmail integration, WhatsApp monitoring, LinkedIn posting, and business intelligence reporting. All running 24/7 with Windows Task Scheduler.
+
+The future of productivity is here! 💡
+
+#AI #Automation #ProductivityTools #ClaudeAI #Python #Innovation

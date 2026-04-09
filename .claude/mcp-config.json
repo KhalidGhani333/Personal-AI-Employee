@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "email": {
+      "command": "node",
+      "args": ["./mcp-servers/email-mcp/index.js"]
+    },
+    "file-management": {
+      "command": "node",
+      "args": ["./mcp-servers/file-mcp/index.js"]
+    },
+    "approval": {
+      "command": "node",
+      "args": ["./mcp-servers/approval-mcp/index.js"]
+    },
+    "social": {
+      "command": "node",
+      "args": ["./mcp-servers/social-mcp/index.js"]
+    },
+    "business": {
+      "command": "python",
+      "args": ["./mcp-servers/business_mcp/server.py"]
+    },
+    "accounting": {
+      "command": "python",
+      "args": ["./mcp-servers/accounting_mcp/server.py"]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./AI_Employee_Vault"]
+    }
+  }
+}

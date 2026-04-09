@@ -1,0 +1,236 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Odoo
+  postgres:
+    image: postgres:15
+    container_name: ai_employee_postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+    networks:
+      - ai_employee_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Odoo Community Edition (Accounting System)
+  odoo:
+    image: odoo:19.0
+    container_name: ai_employee_odoo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${ODOO_PORT:-8069}:8069"
+    environment:
+      - HOST=postgres
+      - USER=${POSTGRES_USER:-odoo}
+      - PASSWORD=${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - ./odoo_config:/etc/odoo
+      - ./odoo_addons:/mnt/extra-addons
+    networks:
+      - ai_employee_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # AI Employee Core (Watchers + Orchestrator)
+  ai_employee:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_employee_core
+    depends_on:
+      - odoo
+    environment:
+      # Vault Configuration
+      - VAULT_PATH=/app/AI_Employee_Vault
+
+      # Odoo Configuration
+      - ODOO_URL=http://odoo:8069
+      - ODOO_DB=${ODOO_DB:-odoo}
+      - ODOO_USERNAME=${ODOO_USERNAME:-admin}
+      - ODOO_PASSWORD=${ODOO_PASSWORD:-admin}
+
+      # Gmail Configuration
+      - GMAIL_CREDENTIALS_PATH=/app/secrets/gmail_credentials.json
+      - GMAIL_TOKEN_PATH=/app/secrets/gmail_token.json
+
+      # WhatsApp Configuration
+      - WHATSAPP_SESSION_PATH=/app/secrets/whatsapp_session
+
+      # LinkedIn Configuration
+      - LINKEDIN_ACCESS_TOKEN=${LINKEDIN_ACCESS_TOKEN}
+
+      # Twitter Configuration
+      - TWITTER_API_KEY=${TWITTER_API_KEY}
+      - TWITTER_API_SECRET=${TWITTER_API_SECRET}
+      - TWITTER_ACCESS_TOKEN=${TWITTER_ACCESS_TOKEN}
+      - TWITTER_ACCESS_SECRET=${TWITTER_ACCESS_SECRET}
+
+      # Facebook Configuration
+      - FACEBOOK_ACCESS_TOKEN=${FACEBOOK_ACCESS_TOKEN}
+      - FACEBOOK_PAGE_ID=${FACEBOOK_PAGE_ID}
+
+      # Instagram Configuration
+      - INSTAGRAM_ACCESS_TOKEN=${INSTAGRAM_ACCESS_TOKEN}
+      - INSTAGRAM_ACCOUNT_ID=${INSTAGRAM_ACCOUNT_ID}
+
+      # Claude Code Configuration
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+      # Monitoring Configuration
+      - ENABLE_MONITORING=${ENABLE_MONITORING:-true}
+      - HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-60}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+      # Work Zone Configuration
+      - WORK_ZONE=${WORK_ZONE:-local}
+      - CLOUD_SYNC_ENABLED=${CLOUD_SYNC_ENABLED:-false}
+
+    volumes:
+      # Vault (persistent storage)
+      - ./AI_Employee_Vault:/app/AI_Employee_Vault
+
+      # Scripts
+      - ./scripts:/app/scripts
+
+      # MCP Servers
+      - ./mcp-servers:/app/mcp-servers
+
+      # Secrets (never commit these)
+      - ./secrets:/app/secrets:ro
+
+      # Logs
+      - ./Logs:/app/Logs
+
+      # Configuration
+      - ./.claude:/app/.claude:ro
+
+    networks:
+      - ai_employee_network
+    restart: unless-stopped
+    command: python /app/scripts/orchestrator.py
+    healthcheck:
+      test: ["CMD", "python", "/app/health-check.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  # Watchdog Service (Health Monitor)
+  watchdog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_employee_watchdog
+    depends_on:
+      - ai_employee
+    environment:
+      - VAULT_PATH=/app/AI_Employee_Vault
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ALERT_EMAIL=${ALERT_EMAIL}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    volumes:
+      - ./AI_Employee_Vault:/app/AI_Employee_Vault
+      - ./scripts:/app/scripts
+      - ./Logs:/app/Logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ai_employee_network
+    restart: unless-stopped
+    command: python /app/watchdog.py
+
+  # CEO Briefing Service (Scheduled Reports)
+  ceo_briefing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_employee_briefing
+    depends_on:
+      - odoo
+    environment:
+      - VAULT_PATH=/app/AI_Employee_Vault
+      - ODOO_URL=http://odoo:8069
+      - ODOO_DB=${ODOO_DB:-odoo}
+      - ODOO_USERNAME=${ODOO_USERNAME:-admin}
+      - ODOO_PASSWORD=${ODOO_PASSWORD:-admin}
+    volumes:
+      - ./AI_Employee_Vault:/app/AI_Employee_Vault
+      - ./scripts:/app/scripts
+      - ./Logs:/app/Logs
+    networks:
+      - ai_employee_network
+    restart: unless-stopped
+    # Run every Sunday at 9:00 AM
+    command: >
+      sh -c "while true; do
+        if [ $$(date +%u) -eq 7 ] && [ $$(date +%H) -eq 9 ] && [ $$(date +%M) -eq 0 ]; then
+          python /app/scripts/ceo_briefing.py weekly;
+        fi;
+        sleep 60;
+      done"
+
+  # Git Sync Service (for Platinum tier vault sync)
+  vault_sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_employee_sync
+    environment:
+      - VAULT_PATH=/app/AI_Employee_Vault
+      - GIT_SYNC_ENABLED=${GIT_SYNC_ENABLED:-false}
+      - GIT_REMOTE_URL=${GIT_REMOTE_URL}
+      - GIT_BRANCH=${GIT_BRANCH:-main}
+      - GIT_SYNC_INTERVAL=${GIT_SYNC_INTERVAL:-300}
+      - GIT_USER_NAME=${GIT_USER_NAME}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL}
+    volumes:
+      - ./AI_Employee_Vault:/app/AI_Employee_Vault
+      - ./scripts:/app/scripts
+      - ./secrets/git_ssh:/root/.ssh:ro
+    networks:
+      - ai_employee_network
+    restart: unless-stopped
+    command: >
+      sh -c "if [ \"$$GIT_SYNC_ENABLED\" = \"true\" ]; then
+        while true; do
+          cd /app/AI_Employee_Vault &&
+          git pull origin $$GIT_BRANCH &&
+          git add . &&
+          git commit -m 'Auto-sync: $$(date)' || true &&
+          git push origin $$GIT_BRANCH;
+          sleep $$GIT_SYNC_INTERVAL;
+        done;
+      else
+        echo 'Git sync disabled' && sleep infinity;
+      fi"
+
+networks:
+  ai_employee_network:
+    driver: bridge
+    name: ai_employee_network
+
+volumes:
+  postgres_data:
+    name: ai_employee_postgres_data
+  odoo_data:
+    name: ai_employee_odoo_data

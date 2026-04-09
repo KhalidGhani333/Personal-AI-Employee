@@ -8,9 +8,22 @@ Integrates with Odoo for self-hosted accounting.
 import asyncio
 import json
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+
+# Add scripts directory to path for imports
+SCRIPTS_PATH = Path(__file__).parent.parent.parent / "scripts"
+sys.path.insert(0, str(SCRIPTS_PATH))
+
+# Import Odoo integration
+try:
+    from odoo_integration import OdooIntegration
+    ODOO_AVAILABLE = True
+except ImportError:
+    ODOO_AVAILABLE = False
+    logger.warning("Odoo integration not available - using local storage only")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -31,11 +44,25 @@ class AccountingMCPServer:
 
     def __init__(self):
         self.name = "accounting-mcp"
-        self.version = "1.0.0"
+        self.version = "2.0.0"  # Updated for Odoo integration
         self.transactions_file = ACCOUNTING_PATH / "transactions.json"
         self.reports_path = ACCOUNTING_PATH / "Reports"
         self.reports_path.mkdir(parents=True, exist_ok=True)
         self._ensure_transactions_file()
+
+        # Initialize Odoo integration
+        self.odoo = None
+        if ODOO_AVAILABLE:
+            try:
+                self.odoo = OdooIntegration()
+                self.odoo.connect()
+                if self.odoo.connected:
+                    logger.info("✅ Connected to Odoo accounting system")
+                else:
+                    logger.info("📁 Using local storage (Odoo not configured)")
+            except Exception as e:
+                logger.warning(f"Odoo connection failed: {e}. Using local storage.")
+                self.odoo = None
 
     def _ensure_transactions_file(self):
         """Initialize transactions file if it doesn't exist"""
@@ -68,8 +95,6 @@ class AccountingMCPServer:
             amount = float(params.get('amount', 0))
             description = params.get('description', 'Expense')
             category = params.get('category', 'general')
-            date = params.get('date', datetime.now().isoformat())
-            payment_method = params.get('payment_method', 'unknown')
 
             if amount <= 0:
                 return {
@@ -77,34 +102,15 @@ class AccountingMCPServer:
                     "error": "Amount must be positive"
                 }
 
-            # Load transactions
-            transactions = self._load_transactions()
-
-            # Create transaction
-            transaction = {
-                "id": f"EXP_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                "type": "expense",
-                "amount": -abs(amount),  # Negative for expense
-                "description": description,
-                "category": category,
-                "date": date,
-                "payment_method": payment_method,
-                "created_at": datetime.now().isoformat()
-            }
-
-            transactions.append(transaction)
-            self._save_transactions(transactions)
-
-            logger.info(f"Recorded expense: {description} - ${amount}")
-
-            return {
-                "success": True,
-                "transaction_id": transaction["id"],
-                "amount": amount,
-                "description": description,
-                "category": category,
-                "message": f"Expense recorded: ${amount}"
-            }
+            # Try Odoo first, fallback to local
+            if self.odoo and self.odoo.connected:
+                result = self.odoo.record_expense(amount, description, category)
+                result['storage'] = 'odoo'
+                logger.info(f"✅ Recorded expense in Odoo: {description} - ${amount}")
+                return result
+            else:
+                # Fallback to local storage
+                return await self._record_expense_local(params)
 
         except Exception as e:
             logger.error(f"Failed to record expense: {e}")
@@ -112,6 +118,44 @@ class AccountingMCPServer:
                 "success": False,
                 "error": str(e)
             }
+
+    async def _record_expense_local(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Record expense in local storage (fallback)"""
+        amount = float(params.get('amount', 0))
+        description = params.get('description', 'Expense')
+        category = params.get('category', 'general')
+        date = params.get('date', datetime.now().isoformat())
+        payment_method = params.get('payment_method', 'unknown')
+
+        # Load transactions
+        transactions = self._load_transactions()
+
+        # Create transaction
+        transaction = {
+            "id": f"EXP_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "type": "expense",
+            "amount": -abs(amount),
+            "description": description,
+            "category": category,
+            "date": date,
+            "payment_method": payment_method,
+            "created_at": datetime.now().isoformat()
+        }
+
+        transactions.append(transaction)
+        self._save_transactions(transactions)
+
+        logger.info(f"📁 Recorded expense locally: {description} - ${amount}")
+
+        return {
+            "success": True,
+            "transaction_id": transaction["id"],
+            "amount": amount,
+            "description": description,
+            "category": category,
+            "storage": "local",
+            "message": f"Expense recorded locally: ${amount}"
+        }
 
     async def record_income(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -128,8 +172,6 @@ class AccountingMCPServer:
             amount = float(params.get('amount', 0))
             description = params.get('description', 'Income')
             source = params.get('source', 'general')
-            date = params.get('date', datetime.now().isoformat())
-            payment_method = params.get('payment_method', 'unknown')
 
             if amount <= 0:
                 return {
@@ -137,34 +179,15 @@ class AccountingMCPServer:
                     "error": "Amount must be positive"
                 }
 
-            # Load transactions
-            transactions = self._load_transactions()
-
-            # Create transaction
-            transaction = {
-                "id": f"INC_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                "type": "income",
-                "amount": abs(amount),  # Positive for income
-                "description": description,
-                "source": source,
-                "date": date,
-                "payment_method": payment_method,
-                "created_at": datetime.now().isoformat()
-            }
-
-            transactions.append(transaction)
-            self._save_transactions(transactions)
-
-            logger.info(f"Recorded income: {description} - ${amount}")
-
-            return {
-                "success": True,
-                "transaction_id": transaction["id"],
-                "amount": amount,
-                "description": description,
-                "source": source,
-                "message": f"Income recorded: ${amount}"
-            }
+            # Try Odoo first, fallback to local
+            if self.odoo and self.odoo.connected:
+                result = self.odoo.record_income(amount, description, source)
+                result['storage'] = 'odoo'
+                logger.info(f"✅ Recorded income in Odoo: {description} - ${amount}")
+                return result
+            else:
+                # Fallback to local storage
+                return await self._record_income_local(params)
 
         except Exception as e:
             logger.error(f"Failed to record income: {e}")
@@ -172,6 +195,44 @@ class AccountingMCPServer:
                 "success": False,
                 "error": str(e)
             }
+
+    async def _record_income_local(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Record income in local storage (fallback)"""
+        amount = float(params.get('amount', 0))
+        description = params.get('description', 'Income')
+        source = params.get('source', 'general')
+        date = params.get('date', datetime.now().isoformat())
+        payment_method = params.get('payment_method', 'unknown')
+
+        # Load transactions
+        transactions = self._load_transactions()
+
+        # Create transaction
+        transaction = {
+            "id": f"INC_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "type": "income",
+            "amount": abs(amount),
+            "description": description,
+            "source": source,
+            "date": date,
+            "payment_method": payment_method,
+            "created_at": datetime.now().isoformat()
+        }
+
+        transactions.append(transaction)
+        self._save_transactions(transactions)
+
+        logger.info(f"📁 Recorded income locally: {description} - ${amount}")
+
+        return {
+            "success": True,
+            "transaction_id": transaction["id"],
+            "amount": amount,
+            "description": description,
+            "source": source,
+            "storage": "local",
+            "message": f"Income recorded locally: ${amount}"
+        }
 
     async def get_balance(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -182,36 +243,15 @@ class AccountingMCPServer:
             end_date: End date for calculation (ISO format, optional)
         """
         try:
-            transactions = self._load_transactions()
-
-            start_date = params.get('start_date')
-            end_date = params.get('end_date')
-
-            # Filter by date if provided
-            filtered = transactions
-            if start_date or end_date:
-                filtered = []
-                for t in transactions:
-                    t_date = t.get('date', '')
-                    if start_date and t_date < start_date:
-                        continue
-                    if end_date and t_date > end_date:
-                        continue
-                    filtered.append(t)
-
-            # Calculate totals
-            total_income = sum(t['amount'] for t in filtered if t['amount'] > 0)
-            total_expenses = abs(sum(t['amount'] for t in filtered if t['amount'] < 0))
-            balance = total_income - total_expenses
-
-            return {
-                "success": True,
-                "balance": balance,
-                "total_income": total_income,
-                "total_expenses": total_expenses,
-                "transaction_count": len(filtered),
-                "message": f"Current balance: ${balance:.2f}"
-            }
+            # Try Odoo first, fallback to local
+            if self.odoo and self.odoo.connected:
+                result = self.odoo.get_balance()
+                result['storage'] = 'odoo'
+                logger.info(f"✅ Retrieved balance from Odoo: ${result['balance']:.2f}")
+                return result
+            else:
+                # Fallback to local storage
+                return await self._get_balance_local(params)
 
         except Exception as e:
             logger.error(f"Failed to get balance: {e}")
@@ -219,6 +259,42 @@ class AccountingMCPServer:
                 "success": False,
                 "error": str(e)
             }
+
+    async def _get_balance_local(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Get balance from local storage (fallback)"""
+        transactions = self._load_transactions()
+
+        start_date = params.get('start_date')
+        end_date = params.get('end_date')
+
+        # Filter by date if provided
+        filtered = transactions
+        if start_date or end_date:
+            filtered = []
+            for t in transactions:
+                t_date = t.get('date', '')
+                if start_date and t_date < start_date:
+                    continue
+                if end_date and t_date > end_date:
+                    continue
+                filtered.append(t)
+
+        # Calculate totals
+        total_income = sum(t['amount'] for t in filtered if t['amount'] > 0)
+        total_expenses = abs(sum(t['amount'] for t in filtered if t['amount'] < 0))
+        balance = total_income - total_expenses
+
+        logger.info(f"📁 Retrieved balance from local storage: ${balance:.2f}")
+
+        return {
+            "success": True,
+            "balance": balance,
+            "total_income": total_income,
+            "total_expenses": total_expenses,
+            "transaction_count": len(filtered),
+            "storage": "local",
+            "message": f"Current balance: ${balance:.2f}"
+        }
 
     async def generate_report(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """

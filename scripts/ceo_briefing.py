@@ -21,6 +21,7 @@ DONE = VAULT_PATH / "Done"
 APPROVED = VAULT_PATH / "Approved"
 LOGS_PATH = VAULT_PATH / "Logs"
 BRIEFINGS = VAULT_PATH / "Briefings"
+ACCOUNTING = VAULT_PATH / "Accounting"
 
 # Ensure directories exist
 BRIEFINGS.mkdir(parents=True, exist_ok=True)
@@ -76,6 +77,74 @@ def count_files_by_type(folder, days=7):
             pass
 
     return dict(counts)
+
+
+def get_accounting_summary(days=7):
+    """Get accounting summary from local storage"""
+    try:
+        # Try to read from local accounting storage
+        accounting_file = ACCOUNTING / "transactions.json"
+
+        if not accounting_file.exists():
+            return {
+                'total_revenue': 0,
+                'total_expenses': 0,
+                'net_income': 0,
+                'transaction_count': 0,
+                'revenue_by_source': {},
+                'expenses_by_category': {}
+            }
+
+        with open(accounting_file, 'r', encoding='utf-8') as f:
+            transactions = json.load(f)
+
+        cutoff_date = datetime.now() - timedelta(days=days)
+
+        total_revenue = 0
+        total_expenses = 0
+        revenue_by_source = defaultdict(float)
+        expenses_by_category = defaultdict(float)
+        transaction_count = 0
+
+        for transaction in transactions:
+            try:
+                trans_date = datetime.fromisoformat(transaction.get('date', ''))
+                if trans_date < cutoff_date:
+                    continue
+
+                transaction_count += 1
+                amount = float(transaction.get('amount', 0))
+                trans_type = transaction.get('type', 'expense')
+
+                if trans_type == 'income':
+                    total_revenue += amount
+                    source = transaction.get('source', 'other')
+                    revenue_by_source[source] += amount
+                elif trans_type == 'expense':
+                    total_expenses += amount
+                    category = transaction.get('category', 'other')
+                    expenses_by_category[category] += amount
+            except:
+                continue
+
+        return {
+            'total_revenue': round(total_revenue, 2),
+            'total_expenses': round(total_expenses, 2),
+            'net_income': round(total_revenue - total_expenses, 2),
+            'transaction_count': transaction_count,
+            'revenue_by_source': dict(revenue_by_source),
+            'expenses_by_category': dict(expenses_by_category)
+        }
+    except Exception as e:
+        logger.error(f"Error reading accounting data: {e}")
+        return {
+            'total_revenue': 0,
+            'total_expenses': 0,
+            'net_income': 0,
+            'transaction_count': 0,
+            'revenue_by_source': {},
+            'expenses_by_category': {}
+        }
 
 
 def analyze_log_file(log_file, days=7):
@@ -396,6 +465,7 @@ def generate_weekly_report():
         'completed': get_completed_tasks(days=7),
         'pending': get_pending_tasks(),
         'social_media': analyze_social_media_activity(days=7),
+        'accounting': get_accounting_summary(days=7),
         'opportunities': detect_opportunities(),
         'bottlenecks': detect_bottlenecks()
     }
@@ -409,6 +479,43 @@ def generate_weekly_report():
     # Generate report
     report = f"""# CEO Weekly Briefing
 ## Week of {week_start} to {date_str}
+
+---
+
+## 💰 Financial Summary
+
+### Revenue
+**Total Revenue**: ${data['accounting']['total_revenue']:,.2f}
+
+**Revenue by Source:**
+"""
+
+    if data['accounting']['revenue_by_source']:
+        for source, amount in sorted(data['accounting']['revenue_by_source'].items(), key=lambda x: x[1], reverse=True):
+            report += f"- {source.capitalize()}: ${amount:,.2f}\n"
+    else:
+        report += "- No revenue recorded this week\n"
+
+    report += f"""
+### Expenses
+**Total Expenses**: ${data['accounting']['total_expenses']:,.2f}
+
+**Expenses by Category:**
+"""
+
+    if data['accounting']['expenses_by_category']:
+        for category, amount in sorted(data['accounting']['expenses_by_category'].items(), key=lambda x: x[1], reverse=True):
+            report += f"- {category.capitalize()}: ${amount:,.2f}\n"
+    else:
+        report += "- No expenses recorded this week\n"
+
+    net_income = data['accounting']['net_income']
+    net_icon = "📈" if net_income >= 0 else "📉"
+    report += f"""
+### Net Income
+**{net_icon} Net Income**: ${net_income:,.2f}
+
+**Transactions**: {data['accounting']['transaction_count']} recorded
 
 ---
 

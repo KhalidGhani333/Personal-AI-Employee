@@ -36,19 +36,26 @@ env/
 *.swo
 *~
 
-# Logs and sessions
-AI_Employee_Vault/Logs/
-AI_Employee_Vault/Needs_Approval/
-AI_Employee_Vault/Needs_Action/
-AI_Employee_Vault/Done/
-AI_Employee_Vault/Archive/
-AI_Employee_Vault/Inbox/
+# Session files and tokens (SENSITIVE - never commit)
+AI_Employee_Vault/Logs/sessions/
+AI_Employee_Vault/Logs/*.json
 AI_Employee_Vault/Browser_Profiles/
-AI_Employee_Vault/Plans/
-logs/
-*.log
-sessions/
-*.json
+*_session.json
+playwright-state.json
+
+# In_Progress folders (temporary working state - not synced)
+AI_Employee_Vault/In_Progress/
+
+# Dashboard lock file (temporary)
+AI_Employee_Vault/.dashboard.lock
+
+# Log files (too large, regenerated)
+logs/*.log
+AI_Employee_Vault/Logs/*.log
+
+# Keep vault structure but ignore specific sensitive files
+# Note: We WANT to sync Inbox, Needs_Action, Needs_Approval, Done folders
+# Only ignore sessions and large logs
 
 # Node modules
 node_modules/
@@ -64,8 +71,8 @@ Thumbs.db
 temp/
 tmp/
 
-# MCP servers
-mcp-servers/
+# Git sync metadata
+.git-sync-lock
 
 # Playwright
 .playwright/

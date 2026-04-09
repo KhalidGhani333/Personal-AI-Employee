@@ -162,8 +162,9 @@ This project is built in three progressive tiers, each adding more sophisticated
 - ✅ **Bronze Tier** - Foundation & Basic Automation (100%)
 - ✅ **Silver Tier** - Advanced Automation & Intelligence (100%)
 - ✅ **Gold Tier** - Autonomous Employee & Business Intelligence (100%)
+- 🚀 **Platinum Tier** - Cloud Deployment with Docker (Ready)
 
-**Next Level:** Platinum Tier - Cloud deployment with 24/7 operation
+**Current Status:** Production Ready + Docker Deployment Available
 
 ## 🚀 Quick Start (5 Minutes)
 
@@ -176,6 +177,9 @@ pip install -r requirements.txt
 
 # Install Playwright browser
 playwright install chromium
+
+# Install Node.js packages (for MCP servers)
+npm install
 ```
 
 ### 2. Configure Credentials
@@ -214,23 +218,33 @@ python scripts/gmail_watcher.py --once
 
 ### 4. Start Full Automation
 
-**Option 1: Batch Script (Easiest - Recommended)**
+**Option 1: Docker (Recommended for 24/7)**
 ```bash
-# PowerShell
-.\start_ai_employee.bat
+# Start all services in containers
+docker-compose up -d
 
-# CMD
-start_ai_employee.bat
+# View logs
+docker-compose logs -f
+
+# Or use convenience scripts:
+docker-start.bat    # Windows
+./docker-start.sh   # Linux/Mac
+```
+
+**Option 2: Batch Script (Windows - All Services)**
+```bash
+# PowerShell or CMD
+.\start_ai_employee.bat
 ```
 Starts all 6 services at once (Gmail, WhatsApp, LinkedIn watchers + Reply Generator + Reply Sender + Main Orchestrator)
 
-**Option 2: Main Orchestrator Only**
+**Option 3: Main Orchestrator Only**
 ```bash
 python scripts/run_ai_employee.py --daemon
 ```
 Runs the main orchestrator in daemon mode (processes Inbox and Needs_Action tasks)
 
-**Option 3: Windows Task Scheduler (24/7 Production)**
+**Option 4: Windows Task Scheduler (24/7 Production)**
 ```bash
 python scripts/setup_windows_scheduler.py --setup
 ```
@@ -242,6 +256,9 @@ Sets up automated background tasks that run even after reboot
 
 - **[Complete Project Summary](SUMMARY.md)** - Full system architecture with diagrams and workflows
 - **[Complete Project Guide](COMPLETE_PROJECT_GUIDE.md)** - Quick reference and command guide
+- **[Docker Setup Guide](DOCKER_SETUP.md)** - Docker deployment for 24/7 operation
+- **[Linux Deployment Guide](LINUX_DEPLOYMENT.md)** - Linux/PM2 deployment with auto-restart
+- **[Odoo Setup Guide](ODOO_SETUP.md)** - Accounting system integration
 - **[Dashboard](AI_Employee_Vault/Dashboard.md)** - Real-time system status
 - **[Company Handbook](AI_Employee_Vault/Company_Handbook.md)** - Business rules and preferences
 
@@ -269,7 +286,7 @@ Sets up automated background tasks that run even after reboot
 ### 🏆 Gold Tier - Autonomous Employee (Complete)
 - ✅ **Instagram Auto-Post** - Automatic Create → Post → Share flow (no manual clicks)
 - ✅ **Odoo Accounting System** - Self-hosted with local fallback
-- ✅ **Multiple MCP Servers** - Business, Accounting, Social Media MCPs
+- ✅ **Multiple MCP Servers** - Email, File, Approval MCPs
 - ✅ **CEO Briefing System** - Daily summaries and weekly business audits
 - ✅ **Social Media Analytics** - Post logging and performance tracking
 - ✅ **Ralph Wiggum Loop** - Autonomous multi-step task execution with approval system
@@ -278,6 +295,16 @@ Sets up automated background tasks that run even after reboot
 - ✅ **Error Recovery** - Graceful degradation and retry logic
 - ✅ **Audit Logging** - Complete activity tracking
 - ✅ **Cross-domain Integration** - Personal + Business unified
+
+### 🚀 Platinum Tier - Cloud Deployment (Ready)
+- ✅ **Docker Containerization** - Multi-service orchestration with docker-compose
+- ✅ **Cloud Ready** - Deploy to any VPS, EC2, DigitalOcean, etc.
+- ✅ **PM2 Process Management** - Auto-restart and monitoring (Linux)
+- ✅ **Health Monitoring** - System health checks and logging
+- ✅ **Isolated Environment** - Clean, reproducible deployments
+- ✅ **Easy Scaling** - One-command start/stop for all services
+- ✅ **Persistent Data** - Volume mounting for vault and logs
+- ✅ **Production Ready** - 24/7 operation with auto-recovery
 
 ## 🛠️ Available Skills & Components
 
@@ -311,9 +338,9 @@ Sets up automated background tasks that run even after reboot
 - **invoice-generator** - Invoice creation and management
 
 ### MCP Servers
-- **business-mcp** - Email sending and activity logging
-- **accounting-mcp** - Financial operations and reporting
-- **social-media-mcp** - Multi-platform posting and analytics
+- **email-mcp** - Email operations (send, receive, search)
+- **file-mcp** - File operations (read, write, move, list)
+- **approval-mcp** - Approval workflow management
 
 ### Production Actions
 - **gmail-send** - Send emails via SMTP
@@ -339,12 +366,14 @@ Personal-AI-Employee/
 │   ├── ceo_briefing.py             # Daily/weekly business reports
 │   ├── odoo_integration.py         # Accounting system integration
 │   ├── ralph_wiggum_loop.py        # Autonomous task execution
+│   ├── cloud_processor.py          # Cloud-based processing
+│   ├── local_executor.py           # Local task execution
 │   ├── setup_windows_scheduler.py  # Windows Task Scheduler setup
 │   └── test_mcp_server.py          # MCP server testing
-├── mcp/                            # MCP Servers
-│   ├── business_mcp/               # Business operations MCP
-│   ├── accounting_mcp/             # Accounting operations MCP
-│   └── social_mcp/                 # Social media operations MCP
+├── mcp-servers/                    # MCP Servers
+│   ├── email-mcp/                  # Email operations MCP
+│   ├── file-mcp/                   # File operations MCP
+│   └── approval-mcp/               # Approval workflow MCP
 ├── .claude/skills/                 # 30+ production skills
 │   ├── gmail-send/
 │   ├── linkedin-post/
@@ -366,11 +395,24 @@ Personal-AI-Employee/
 │   ├── Accounting/                 # Financial transactions & reports
 │   ├── Briefings/                  # CEO briefings & business audits
 │   └── Reports/                    # Generated reports & analytics
+├── Docker/                         # Docker deployment
+│   ├── Dockerfile                  # Container definition
+│   ├── docker-compose.yml          # Multi-service orchestration
+│   ├── .dockerignore              # Docker ignore rules
+│   ├── docker-start.sh            # Start script (Linux/Mac)
+│   ├── docker-start.bat           # Start script (Windows)
+│   ├── docker-stop.sh             # Stop script (Linux/Mac)
+│   └── docker-stop.bat            # Stop script (Windows)
 ├── SUMMARY.md                      # Complete project documentation with diagrams
 ├── COMPLETE_PROJECT_GUIDE.md       # Quick reference and command guide
+├── DOCKER_SETUP.md                 # Docker deployment guide
+├── LINUX_DEPLOYMENT.md             # Linux/PM2 deployment guide
+├── ODOO_SETUP.md                   # Accounting setup guide
 ├── logs/                           # System logs
 ├── .env                            # Credentials (create from .env.example)
-└── requirements.txt                # Python dependencies
+├── requirements.txt                # Python dependencies
+├── package.json                    # Node.js dependencies
+└── ecosystem.config.js             # PM2 configuration
 ```
 
 ## 🔧 Common Commands
@@ -444,11 +486,43 @@ python scripts/odoo_integration.py connect
 python scripts/odoo_integration.py expense 50.00 "Office supplies" --category office
 python scripts/odoo_integration.py income 500.00 "Client payment" --source client
 python scripts/odoo_integration.py balance
+```
+
+### MCP Servers
+```bash
+# Start MCP servers
+cd mcp-servers/email-mcp && npm start
+cd mcp-servers/file-mcp && npm start
+cd mcp-servers/approval-mcp && npm start
 
 # Test MCP servers
-python mcp/accounting_mcp/server.py
-python mcp/social_mcp/server.py
-python mcp/business_mcp/server.py
+python scripts/test_mcp_server.py
+```
+
+### Docker Deployment
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Restart services
+docker-compose restart
+
+# Rebuild containers
+docker-compose build --no-cache
+
+# Windows convenience scripts
+docker-start.bat
+docker-stop.bat
+
+# Linux/Mac convenience scripts
+./docker-start.sh
+./docker-stop.sh
 ```
 
 ### Windows Task Scheduler
@@ -608,9 +682,11 @@ See [Complete Project Guide](COMPLETE_PROJECT_GUIDE.md) for detailed troubleshoo
 
 ### Core Automation
 - ✅ 30+ production-ready skills
-- ✅ 3 MCP servers (Business, Accounting, Social Media)
+- ✅ 3 MCP servers (Email, File, Approval)
 - ✅ Daemon mode for 24/7 operation
+- ✅ Docker containerization for cloud deployment
 - ✅ Windows Task Scheduler integration
+- ✅ Linux PM2 process management
 - ✅ Ralph Wiggum autonomous loop
 - ✅ Lock file prevents duplicate instances
 - ✅ Automatic log rotation at 5MB
@@ -642,7 +718,15 @@ See [Complete Project Guide](COMPLETE_PROJECT_GUIDE.md) for detailed troubleshoo
 - ✅ Expense/income tracking
 - ✅ Balance calculation
 - ✅ Financial report generation
-- ✅ Accounting MCP server
+
+### Deployment & Infrastructure
+- ✅ Docker containerization
+- ✅ Multi-service orchestration (docker-compose)
+- ✅ Cloud deployment ready (VPS/EC2/DigitalOcean)
+- ✅ PM2 process management (Linux)
+- ✅ Windows Task Scheduler integration
+- ✅ Health monitoring and auto-restart
+- ✅ Isolated environments with volume persistence
 
 ### Security & Reliability
 - ✅ Complete audit trail
@@ -690,8 +774,9 @@ For issues or questions:
 - ✅ **Bronze Tier** - Foundation & Basic Automation (100%)
 - ✅ **Silver Tier** - Advanced Automation & Intelligence (100%)
 - ✅ **Gold Tier** - Autonomous Employee & Business Intelligence (100%)
+- 🚀 **Platinum Tier** - Cloud Deployment with Docker (Ready)
 
-**Next Level:** Platinum Tier - Cloud deployment with 24/7 operation
+**Current Status:** Production Ready + Docker Deployment Available
 
 ---
 
@@ -711,14 +796,15 @@ For issues or questions:
 
 - **Channels Monitored:** 3 (Gmail, WhatsApp, LinkedIn)
 - **Social Platforms:** 4 (LinkedIn, Twitter, Facebook, Instagram)
-- **MCP Servers:** 3 (Business, Accounting, Social Media)
+- **MCP Servers:** 3 (Email, File, Approval)
 - **Agent Skills:** 30+
 - **Intent Types:** 10+
-- **Automation Scripts:** 15+
+- **Automation Scripts:** 20+
 - **Documentation Pages:** 5+
+- **Deployment Options:** 4 (Local, Windows Scheduler, Docker, Linux/PM2)
 
 ---
 
-**Built with:** Python, Playwright, SMTP, IMAP, MCP, Odoo
-**Architecture:** Local-first, MCP-based, Agent Skills
-**Status:** 🏆 Gold Tier Complete - Production Ready ✅
+**Built with:** Python, TypeScript, Playwright, Docker, SMTP, IMAP, MCP, Odoo
+**Architecture:** Local-first, MCP-based, Agent Skills, Containerized
+**Status:** 🏆 Gold Tier Complete + 🚀 Platinum Tier Ready - Production Ready ✅

@@ -1,0 +1,113 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Secrets (NEVER include in Docker image)
+secrets/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials.json
+token.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+ENV/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+Logs/
+
+# Documentation (build separately if needed)
+*.md
+!README.md
+docs/
+
+# Test files
+tests/
+test/
+*.test.js
+*.spec.js
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+docker-compose.override.yml
+Dockerfile.dev
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Large data files (should be mounted as volumes)
+AI_Employee_Vault/Done/
+AI_Employee_Vault/Archive/
+AI_Employee_Vault/Logs/*.log
+
+# WhatsApp session (mount as volume)
+whatsapp_session/
+
+# Odoo custom
+odoo_data/
+odoo_config/
+odoo_addons/

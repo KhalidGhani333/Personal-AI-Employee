@@ -1,0 +1,227 @@
+{
+  "main": {
+    "id": "0d9abab9c26ddf44",
+    "type": "split",
+    "children": [
+      {
+        "id": "4e0bb066a9f5bb58",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c1a29756531a7699",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_121515_whatsapp_Hamdan_Shah_20260317_121503.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "APPROVAL_20260317_121515_whatsapp_Hamdan_Shah_20260317_121503"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "7d56d0d29d44392b",
+    "type": "split",
+    "children": [
+      {
+        "id": "bb760a935491acf4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1b97fafd7a126e3e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "fdca1784ad8ff488",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "cbecb3972e163f6b",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 408.5
+  },
+  "right": {
+    "id": "54626b61c7754b5e",
+    "type": "split",
+    "children": [
+      {
+        "id": "e5a477563fb05ce6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0bb7ce23cd9c810e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "aa8c69dd9d23f249",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "b62a43f7dcc2f1f4",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "523a4323efbf884b",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "77dba3e176c0154f",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "c1a29756531a7699",
+  "lastOpenFiles": [
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/4046bdd8-639e-41bd-964b-22691fc59421.tmp",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/Service Worker/CacheStorage/0bf6ab7f94a21cdc9c1649f884333ec20f40a544/index.txt.tmp",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/Service Worker/CacheStorage/0bf6ab7f94a21cdc9c1649f884333ec20f40a544/85f80544-670a-4a82-92d7-6658f475d365/index-dir/temp-index",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/003201.ldb",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/003200.ldb",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/003199.ldb",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/GrShaderCache/f_000024",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/003198.ldb",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/003197.ldb",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/003196.ldb",
+    "AI_Employee_Vault/Browser_Profiles/whatsapp_profile/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/003195.ldb",
+    "AI_Employee_Vault/Archive/whatsapp_Syed_Talha_FWW_2_20260317_121226.md",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_121515_whatsapp_Syed_Talha_FWW_2_20260317_121226.md",
+    "AI_Employee_Vault/Archive/whatsapp_Hamdan_Shah_20260317_121503.md",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_121515_whatsapp_Hamdan_Shah_20260317_121503.md",
+    "AI_Employee_Vault/Needs_Action/whatsapp_Syed_Talha_FWW_2_20260317_121226.md",
+    "Screenshot.png",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_115958_whatsapp_Tariq_Ahmed_FBR_2_20260317_115910.md",
+    "AI_Employee_Vault/Done/APPROVAL_20260317_115958_whatsapp_Tariq_Ahmed_FBR_2_20260317_115910.md",
+    "AI_Employee_Vault/Archive/whatsapp_Tariq_Ahmed_FBR_2_20260317_115910.md",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_115227_whatsapp_Tariq_Ahmed_FBR_2_20260317_115148.md",
+    "AI_Employee_Vault/Needs_Action/whatsapp_Tariq_Ahmed_FBR_2_20260317_115148.md",
+    "AI_Employee_Vault/Dashboard.md",
+    "AI_Employee_Vault/Archive/whatsapp_TAZA_KHABAR🚨🚔_20260317_115143.md",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_115227_whatsapp_TAZA_KHABAR🚨🚔_20260317_115143.md",
+    "AI_Employee_Vault/Archive/whatsapp_Tariq_Ahmed_FBR_2_20260317_115148.md",
+    "AI_Employee_Vault/Needs_Action/whatsapp_TAZA_KHABAR🚨🚔_20260317_115143.md",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_113337_whatsapp_Tariq_Ahmed_FBR_2_20260317_113303.md",
+    "AI_Employee_Vault/Done/APPROVAL_20260317_113337_whatsapp_Tariq_Ahmed_FBR_2_20260317_113303.md",
+    "AI_Employee_Vault/Archive/whatsapp_Tariq_Ahmed_FBR_2_20260317_113303.md",
+    "AI_Employee_Vault/Archive/whatsapp_Saturday_Evening_AI_Spec-Drive_20260317_113259.md",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260317_113337_whatsapp_Saturday_Evening_AI_Spec-Drive_20260317_113259.md",
+    "AI_Employee_Vault/Needs_Action/whatsapp_Tariq_Ahmed_FBR_2_20260317_113303.md",
+    "AI_Employee_Vault/Needs_Action/whatsapp_Saturday_Evening_AI_Spec-Drive_20260317_113259.md",
+    "AI_Employee_Vault/Done/Plan_my_test_20260315_020256.md",
+    "AI_Employee_Vault/Done/APPROVAL_20260315_020258_Plan_my_test_20260315_020256.md",
+    "AI_Employee_Vault/Needs_Approval/APPROVAL_20260315_020258_Plan_my_test_20260315_020256.md",
+    "Screenshot instagram.png",
+    "AI_Employee_Vault/Logs/whatsapp_20260304_150928.png",
+    "AI_Employee_Vault/Logs/whatsapp_debug_20260304_143935.png"
+  ]
+}

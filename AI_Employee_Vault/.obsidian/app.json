@@ -1,0 +1,11 @@
+{
+  "legacyEditor": false,
+  "livePreview": true,
+  "showLineNumber": true,
+  "strictLineBreaks": false,
+  "showFrontmatter": true,
+  "defaultViewMode": "preview",
+  "attachmentFolderPath": "Files",
+  "newFileLocation": "folder",
+  "newFileFolderPath": "Inbox"
+}

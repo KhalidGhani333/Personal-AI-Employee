@@ -2,30 +2,45 @@
 
 ## 🎯 Project Overview
 
-**Personal AI Employee** is an autonomous task automation system that monitors your inbox, processes tasks, handles approvals, and executes actions automatically. It integrates with Gmail, WhatsApp, LinkedIn, Instagram, and other platforms to act as your digital assistant.
+**Personal AI Employee** is a comprehensive autonomous business automation system that monitors communications, processes tasks, handles approvals, and executes actions automatically. It integrates with Gmail, WhatsApp, LinkedIn, Instagram, and other platforms while providing business intelligence, accounting integration, and autonomous task execution.
+
+**Current Status:** 🏆 Gold Tier Complete + Platinum Tier (Docker Deployment) Ready
 
 ---
 
 ## 🏗️ System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     AI EMPLOYEE SYSTEM                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌─────────┐ │
-│  │  Inbox   │───▶│  Needs   │───▶│  Needs   │───▶│  Done   │ │
-│  │          │    │  Action  │    │ Approval │    │         │ │
-│  └──────────┘    └──────────┘    └──────────┘    └─────────┘ │
-│       ▲               │                │               │       │
-│       │               ▼                ▼               │       │
-│  ┌────┴────┐    ┌─────────┐    ┌──────────┐    ┌────▼────┐  │
-│  │ Watchers│    │  Task   │    │  Ralph   │    │ Archive │  │
-│  │ (Email, │    │ Planner │    │ Wiggum   │    │         │  │
-│  │WhatsApp)│    │         │    │  Loop    │    └─────────┘  │
-│  └─────────┘    └─────────┘    └──────────┘                  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     AI EMPLOYEE SYSTEM                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌─────────┐     │
+│  │  Inbox   │───▶│  Needs   │───▶│  Needs   │───▶│  Done   │     │
+│  │          │    │  Action  │    │ Approval │    │         │     │
+│  └──────────┘    └──────────┘    └──────────┘    └─────────┘     │
+│       ▲               │                │               │           │
+│       │               ▼                ▼               │           │
+│  ┌────┴────┐    ┌─────────┐    ┌──────────┐    ┌────▼────┐      │
+│  │ Watchers│    │  Task   │    │  Ralph   │    │ Archive │      │
+│  │ (Email, │    │ Planner │    │ Wiggum   │    │         │      │
+│  │WhatsApp,│    │         │    │  Loop    │    └─────────┘      │
+│  │LinkedIn)│    └─────────┘    └──────────┘                      │
+│  └─────────┘                                                       │
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────┐      │
+│  │ MCP Servers Layer                                       │      │
+│  ├─────────────────────────────────────────────────────────┤      │
+│  │ Email MCP │ File MCP │ Approval MCP │ (Future MCPs)    │      │
+│  └─────────────────────────────────────────────────────────┘      │
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────┐      │
+│  │ Business Intelligence Layer                             │      │
+│  ├─────────────────────────────────────────────────────────┤      │
+│  │ CEO Briefings │ Analytics │ Accounting │ Social Media   │      │
+│  └─────────────────────────────────────────────────────────┘      │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -40,13 +55,14 @@ START
 │ STEP 1: INPUT SOURCES                                       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  📧 Gmail Watcher    📱 WhatsApp Watcher                   │
-│       │                      │                              │
-│       └──────────┬───────────┘                              │
+│  📧 Gmail Watcher    📱 WhatsApp Watcher   💼 LinkedIn     │
+│       │                      │                    │         │
+│       └──────────┬───────────┴────────────────────┘         │
 │                  ▼                                           │
 │         AI_Employee_Vault/Inbox/                            │
 │         - email_*.md                                        │
 │         - whatsapp_*.md                                     │
+│         - linkedin_*.md                                     │
 │         - task_*.md                                         │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -140,8 +156,8 @@ START
 │  - Approval file (if any)                                  │
 │                                                             │
 │  Logs updated:                                             │
-│  - logs/ai_employee.log                                    │
-│  - logs/actions.log                                        │
+│  - Logs/ai_employee.log                                    │
+│  - Logs/actions.log                                        │
 │  - Logs/ralph_wiggum.log                                   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -159,140 +175,150 @@ END
 python scripts/run_ai_employee.py --once
 ```
 
-**Flow:**
-```
-Start
-  ↓
-Run Task Planner (Inbox → Needs_Action)
-  ↓
-Run Task Executor (Needs_Action → Done)
-  ↓
-End
-```
-
 **Use Case:** Manual testing, one-time processing
-
----
 
 ### 2. Daemon Mode (Continuous)
 ```bash
 python scripts/run_ai_employee.py --daemon --interval 300
 ```
 
-**Flow:**
-```
-Start
-  ↓
-┌─────────────────┐
-│ Cycle Loop      │
-│                 │
-│ 1. Task Planner │
-│ 2. Task Executor│
-│ 3. Wait 5 min   │
-│                 │
-└────────┬────────┘
-         │
-         └──────▶ Repeat Forever (until Ctrl+C)
+**Use Case:** Production deployment, continuous monitoring
+
+### 3. Docker Deployment (Platinum Tier)
+```bash
+# Start all services
+docker-compose up -d
+
+# Or use convenience scripts
+./docker-start.sh    # Linux/Mac
+docker-start.bat     # Windows
 ```
 
-**Use Case:** Production deployment, continuous monitoring
+**Use Case:** 24/7 cloud deployment, isolated environment, easy scaling
 
 ---
 
-## 📁 Folder Structure & Purpose
+## 📁 Complete Folder Structure
 
 ```
-AI_Employee_Vault/
+Personal-AI-Employee/
+├── scripts/                         # Main automation scripts
+│   ├── run_ai_employee.py          # Main orchestrator
+│   ├── task_planner.py             # Task analyzer
+│   ├── gmail_watcher.py            # Gmail monitoring (IMAP)
+│   ├── whatsapp_watcher.py         # WhatsApp monitoring
+│   ├── linkedin_watcher.py         # LinkedIn monitoring
+│   ├── reply_generator.py          # AI reply generation
+│   ├── reply_sender.py             # Send approved replies
+│   ├── social_poster.py            # Multi-platform posting
+│   ├── linkedin_auto_poster.py     # Scheduled LinkedIn posts
+│   ├── social_summary.py           # Social media analytics
+│   ├── ceo_briefing.py             # Daily/weekly reports
+│   ├── odoo_integration.py         # Accounting integration
+│   ├── ralph_wiggum_loop.py        # Autonomous executor
+│   ├── cloud_processor.py          # Cloud-based processing
+│   ├── local_executor.py           # Local task execution
+│   └── setup_windows_scheduler.py  # Windows automation
 │
-├── Inbox/                    # 📥 Entry point for all tasks
-│   ├── email_*.md           # From Gmail watcher
-│   ├── whatsapp_*.md        # From WhatsApp watcher
-│   └── task_*.md            # Manual tasks
+├── mcp-servers/                    # MCP Server implementations
+│   ├── email-mcp/                  # Email operations MCP
+│   │   ├── src/index.ts           # Email server logic
+│   │   └── package.json
+│   ├── file-mcp/                   # File operations MCP
+│   │   ├── src/index.ts           # File server logic
+│   │   └── package.json
+│   └── approval-mcp/               # Approval workflow MCP
+│       ├── src/index.ts           # Approval server logic
+│       └── package.json
 │
-├── Needs_Action/             # 📝 Execution plans waiting to run
-│   └── Plan_*.md            # Generated by task planner
+├── .claude/                        # Claude Code configuration
+│   ├── skills/                     # 30+ production skills
+│   │   ├── gmail-send/
+│   │   ├── linkedin-post/
+│   │   ├── vault-file-manager/
+│   │   ├── human-approval/
+│   │   ├── ceo-briefing/
+│   │   ├── accounting-manager/
+│   │   ├── social-media-manager/
+│   │   ├── ralph-wiggum/
+│   │   └── [25+ more skills]
+│   └── mcp-config.json            # MCP server configuration
 │
-├── Needs_Approval/           # ⏳ Tasks requiring human approval
-│   └── APPROVAL_*.md        # Generated by Ralph Wiggum
+├── AI_Employee_Vault/              # Task workflow & data
+│   ├── Dashboard.md                # Real-time system status
+│   ├── Company_Handbook.md         # Business rules
+│   ├── Inbox/                      # New tasks entry point
+│   ├── Needs_Action/               # Active tasks
+│   ├── Needs_Approval/             # Awaiting approval
+│   ├── Done/                       # Completed tasks
+│   ├── Plans/                      # Execution plans
+│   ├── Archive/                    # Old messages
+│   ├── Logs/                       # System logs & sessions
+│   ├── Briefings/                  # CEO briefings
+│   ├── Accounting/                 # Financial data
+│   └── Reports/                    # Analytics reports
 │
-├── Done/                     # ✅ Completed tasks archive
-│   ├── Original files
-│   ├── Plans
-│   └── Approvals
+├── Docker Setup/                   # Docker deployment files
+│   ├── Dockerfile                  # Container definition
+│   ├── docker-compose.yml          # Multi-service orchestration
+│   ├── .dockerignore              # Docker ignore rules
+│   ├── docker-start.sh            # Start script (Linux)
+│   ├── docker-start.bat           # Start script (Windows)
+│   ├── docker-stop.sh             # Stop script (Linux)
+│   └── docker-stop.bat            # Stop script (Windows)
 │
-├── Plans/                    # 📋 Detailed execution plans
-│   └── Plan_Plan_*.md       # Created by Ralph Wiggum
+├── Documentation/
+│   ├── README.md                   # Main documentation
+│   ├── SUMMARY.md                  # This file
+│   ├── COMPLETE_PROJECT_GUIDE.md   # Quick reference
+│   ├── DOCKER_SETUP.md            # Docker deployment guide
+│   ├── LINUX_DEPLOYMENT.md        # Linux/PM2 deployment
+│   └── ODOO_SETUP.md              # Accounting setup
 │
-├── Archive/                  # 🗄️ Old messages/tasks
-│   └── Archived items
-│
-├── Logs/                     # 📊 System logs
-│   ├── sessions/            # Browser sessions
-│   ├── social_poster.log
-│   └── ralph_wiggum.log
-│
-├── Briefings/                # 📰 Daily summaries
-│   └── DAILY_SUMMARY_*.md
-│
-└── Reports/                  # 📈 Analytics & reports
-    └── REPORT_*.md
+├── .env                            # Environment variables
+├── requirements.txt                # Python dependencies
+├── package.json                    # Node.js dependencies
+└── ecosystem.config.js             # PM2 configuration
+
 ```
 
 ---
 
 ## 🎭 Task Types & Handlers
 
-```
-┌──────────────────────────────────────────────────────────┐
-│ TASK TYPE DETECTION & ROUTING                           │
-├──────────────────────────────────────────────────────────┤
-│                                                          │
-│  📧 Email Task                                           │
-│  Keywords: "email", "send", "@"                         │
-│  Handler: _execute_email_task()                         │
-│  Action: Send email via Gmail                           │
-│                                                          │
-│  ─────────────────────────────────────────────────      │
-│                                                          │
-│  📱 Social Media Task                                    │
-│  Keywords: "linkedin", "instagram", "post", "social"    │
-│  Handler: _execute_social_task()                        │
-│  Actions:                                               │
-│    - LinkedIn: Post to feed                             │
-│    - Instagram: Upload image + caption                  │
-│    - Twitter: Tweet                                     │
-│    - Facebook: Post to timeline                         │
-│                                                          │
-│  ─────────────────────────────────────────────────      │
-│                                                          │
-│  📂 File Management Task                                 │
-│  Keywords: "file", "document", "move", "copy"           │
-│  Handler: Requires approval (risky)                     │
-│  Action: File operations                                │
-│                                                          │
-│  ─────────────────────────────────────────────────      │
-│                                                          │
-│  💰 Accounting Task                                      │
-│  Keywords: "expense", "income", "accounting"            │
-│  Handler: accounting_manager.py                         │
-│  Action: Log transaction, update records                │
-│                                                          │
-│  ─────────────────────────────────────────────────      │
-│                                                          │
-│  📊 Reporting Task                                       │
-│  Keywords: "report", "summary", "analytics"             │
-│  Handler: report_generator.py                           │
-│  Action: Generate reports from data                     │
-│                                                          │
-│  ─────────────────────────────────────────────────      │
-│                                                          │
-│  🔧 General Task                                         │
-│  Default: Any other task                                │
-│  Handler: Generic execution                             │
-│  Action: Simulated execution                            │
-│                                                          │
-└──────────────────────────────────────────────────────────┘
-```
+### Email Tasks
+- **Keywords:** "email", "send", "@"
+- **Handler:** `_execute_email_task()`
+- **Action:** Send email via Gmail SMTP
+- **MCP:** email-mcp
+
+### Social Media Tasks
+- **Keywords:** "linkedin", "instagram", "post", "social"
+- **Handler:** `_execute_social_task()`
+- **Platforms:** LinkedIn, Twitter, Facebook, Instagram
+- **Features:** Auto-posting, session persistence, analytics
+
+### File Management Tasks
+- **Keywords:** "file", "document", "move", "copy"
+- **Handler:** Requires approval (risky)
+- **MCP:** file-mcp
+- **Action:** File operations with safety checks
+
+### Accounting Tasks
+- **Keywords:** "expense", "income", "accounting"
+- **Handler:** `accounting_manager.py`
+- **Integration:** Odoo (with local JSON fallback)
+- **Action:** Transaction logging, balance tracking
+
+### Reporting Tasks
+- **Keywords:** "report", "summary", "analytics"
+- **Handler:** `report_generator.py`
+- **Action:** Generate business intelligence reports
+
+### General Tasks
+- **Default:** Any other task
+- **Handler:** Generic execution
+- **Action:** Simulated or custom execution
 
 ---
 
@@ -300,389 +326,343 @@ AI_Employee_Vault/
 
 ### Risk Assessment
 ```
-┌─────────────────────────────────────────┐
-│ RISKY KEYWORDS DETECTION                │
-├─────────────────────────────────────────┤
-│                                         │
-│  ⚠️  High Risk Keywords:                │
-│  - delete, remove, drop                 │
-│  - truncate, destroy, format            │
-│  - wipe, erase, reset                   │
-│  - force, sudo, admin                   │
-│  - root, password, credential           │
-│                                         │
-│  If detected:                           │
-│  → Task marked as "risky"               │
-│  → Requires human approval              │
-│  → Cannot auto-execute                  │
-│                                         │
-└─────────────────────────────────────────┘
+⚠️  High Risk Keywords:
+- delete, remove, drop, truncate
+- destroy, format, wipe, erase
+- reset, force, sudo, admin
+- root, password, credential
+
+If detected:
+→ Task marked as "risky"
+→ Requires human approval
+→ Cannot auto-execute
 ```
 
 ### Approval Workflow
 ```
-Risky Task Detected
-        │
-        ▼
-Create Approval Request
-        │
-        ▼
-Save to Needs_Approval/
-        │
-        ▼
-Pause Execution
-        │
-        ▼
-Wait for Human Decision
-        │
-        ├─────────────┬─────────────┐
-        │             │             │
-        ▼             ▼             ▼
-    Approved      Rejected      Timeout
-        │             │             │
-        ▼             ▼             ▼
-    Execute       Cancel        Wait More
+Risky Task → Create Approval → Save to Needs_Approval/
+→ Pause Execution → Wait for Human Decision
+→ Approved: Execute | Rejected: Cancel
 ```
+
+### Audit Trail
+- Every action logged with timestamp
+- Complete file history in Done/ folder
+- Session logs for debugging
+- Error tracking and recovery
 
 ---
 
 ## 🚀 Integration Features
 
 ### 1. Gmail Integration
-```
-┌──────────────────────────────────┐
-│ Gmail Watcher                    │
-├──────────────────────────────────┤
-│                                  │
-│ 1. Connect to Gmail via IMAP    │
-│ 2. Fetch unread emails           │
-│ 3. Parse email content           │
-│ 4. Create task file in Inbox    │
-│ 5. Mark email as read            │
-│                                  │
-│ Output: email_*.md               │
-│                                  │
-└──────────────────────────────────┘
-```
+- IMAP monitoring for incoming emails
+- SMTP sending for outgoing emails
+- AI-powered reply generation
+- Intent detection (10+ types)
+- Context-aware responses
 
 ### 2. WhatsApp Integration
+- QR code authentication
+- Session persistence
+- Message monitoring
+- Keyword filtering
+- Auto-reply capability
+
+### 3. LinkedIn Integration
+- Session-based authentication
+- Message monitoring
+- Auto-posting with scheduling
+- Sales post automation
+- Analytics tracking
+
+### 4. Social Media Posting
+- **LinkedIn:** Feed posts, articles
+- **Instagram:** Image posts with captions (fully automated)
+- **Twitter:** Tweets and threads
+- **Facebook:** Timeline posts
+
+### 5. Accounting Integration
+- **Odoo:** Self-hosted accounting system
+- **Local Fallback:** JSON-based storage
+- **Features:** Expense/income tracking, balance calculation
+- **Reports:** Financial summaries and analytics
+
+### 6. Business Intelligence
+- **Daily CEO Briefings:** Activity summaries
+- **Weekly Audits:** Opportunity detection, bottleneck analysis
+- **AI Recommendations:** Proactive business insights
+- **Analytics:** Performance tracking across channels
+
+---
+
+## 🐳 Docker Deployment (Platinum Tier)
+
+### Architecture
 ```
-┌──────────────────────────────────┐
-│ WhatsApp Watcher                 │
-├──────────────────────────────────┤
-│                                  │
-│ 1. Connect via QR code           │
-│ 2. Monitor incoming messages     │
-│ 3. Filter by keywords            │
-│ 4. Create task file in Inbox    │
-│ 5. Auto-reply (optional)         │
-│                                  │
-│ Output: whatsapp_*.md            │
-│                                  │
-└──────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│ Docker Container                        │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ Python Environment              │   │
+│  │ - All scripts                   │   │
+│  │ - Dependencies                  │   │
+│  │ - Playwright browsers           │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ Node.js Environment             │   │
+│  │ - MCP Servers                   │   │
+│  │ - Email/File/Approval MCPs      │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ Volumes (Persistent Data)       │   │
+│  │ - AI_Employee_Vault/            │   │
+│  │ - Logs/                         │   │
+│  │ - .env                          │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+└─────────────────────────────────────────┘
 ```
 
-### 3. Social Media Posting
-```
-┌──────────────────────────────────────────────┐
-│ Social Media Automation                      │
-├──────────────────────────────────────────────┤
-│                                              │
-│ LinkedIn:                                    │
-│  1. Load saved session                       │
-│  2. Navigate to feed                         │
-│  3. Click "Start a post"                     │
-│  4. Type content                             │
-│  5. Click "Post"                             │
-│                                              │
-│ Instagram:                                   │
-│  1. Load saved session                       │
-│  2. Click Create button                      │
-│  3. Select "Post" option                     │
-│  4. Upload image                             │
-│  5. Add caption                              │
-│  6. Click "Share" (automatic)                │
-│                                              │
-│ Twitter/Facebook: Similar flow               │
-│                                              │
-└──────────────────────────────────────────────┘
+### Benefits
+- **Isolation:** Clean environment, no conflicts
+- **Portability:** Run anywhere (local, cloud, VPS)
+- **Consistency:** Same environment across machines
+- **Easy Deployment:** One command to start
+- **Scalability:** Easy to replicate and scale
+
+### Quick Start
+```bash
+# Build and start
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Restart
+docker-compose restart
 ```
 
 ---
 
-## 📊 System Status & Monitoring
+## 📊 MCP Server Architecture
 
-### Status Command
-```bash
-python scripts/run_ai_employee.py --status
+### Email MCP Server
+```typescript
+Tools:
+- send_email: Send emails via SMTP
+- get_inbox: Fetch unread emails
+- mark_read: Mark emails as read
+- search_emails: Search email content
+
+Resources:
+- email://inbox: Current inbox state
+- email://sent: Sent emails log
 ```
 
-**Output:**
+### File MCP Server
+```typescript
+Tools:
+- read_file: Read file contents
+- write_file: Write to file
+- move_file: Move files between folders
+- list_files: List directory contents
+
+Resources:
+- file://vault: Vault directory structure
+- file://logs: System logs
 ```
-============================================================
-AI Employee System Status
-============================================================
-Timestamp: 2026-03-14 12:42:50
 
-Inbox:
-  Files waiting: 0
+### Approval MCP Server
+```typescript
+Tools:
+- request_approval: Create approval request
+- check_approval: Check approval status
+- list_pending: List pending approvals
 
-Needs_Action:
-  Plans pending: 0
-
-Needs_Approval:
-  Approvals pending: 0
-
-Daemon Status:
-  Running: No
-
-Recent Activity (last 10 entries):
-  [2026-03-14 12:30:21] [INFO] Task completed successfully
-  [2026-03-14 12:31:52] [INFO] No new files to process
-============================================================
+Resources:
+- approval://pending: Pending approvals
+- approval://history: Approval history
 ```
 
 ---
 
 ## 🛠️ Key Scripts & Components
 
-### Core Scripts
-```
-scripts/
-│
-├── run_ai_employee.py          # 🎯 Main orchestrator
-│   ├── run_once()              # Single execution
-│   ├── run_daemon()            # Continuous mode
-│   └── run_task_planner()      # Inbox processor
-│   └── run_task_executor()     # Action executor
-│
-├── task_planner.py             # 📝 Plan generator
-│   ├── analyze_task()          # Task analysis
-│   ├── create_plan()           # Plan creation
-│   └── move_to_done()          # File management
-│
-├── ralph_wiggum_loop.py        # 🤖 Autonomous executor
-│   ├── process_task()          # Main loop
-│   ├── execute_step()          # Step execution
-│   ├── request_approval()      # Approval request
-│   └── check_approval()        # Approval check
-│
-├── social_poster.py            # 📱 Social media handler
-│   ├── post_to_linkedin()      # LinkedIn posting
-│   ├── post_to_instagram()     # Instagram posting
-│   ├── post_to_twitter()       # Twitter posting
-│   └── post_to_facebook()      # Facebook posting
-│
-├── gmail_watcher.py            # 📧 Email monitor
-├── whatsapp_watcher.py         # 💬 WhatsApp monitor
-├── accounting_manager.py       # 💰 Accounting handler
-└── report_generator.py         # 📊 Report generator
-```
+### Core Orchestration
+- **run_ai_employee.py** - Main orchestrator (daemon/once/status)
+- **task_planner.py** - Task analysis and plan generation
+- **ralph_wiggum_loop.py** - Autonomous task execution
+
+### Communication Monitoring
+- **gmail_watcher.py** - Email monitoring (IMAP)
+- **whatsapp_watcher.py** - WhatsApp monitoring (Playwright)
+- **linkedin_watcher.py** - LinkedIn monitoring (Playwright)
+
+### AI Intelligence
+- **reply_generator.py** - AI-powered reply generation
+- **reply_sender.py** - Send approved replies
+- **ceo_briefing.py** - Business intelligence reports
+
+### Social Media
+- **social_poster.py** - Multi-platform posting
+- **linkedin_auto_poster.py** - Scheduled LinkedIn automation
+- **social_summary.py** - Analytics and tracking
+
+### Business Operations
+- **odoo_integration.py** - Accounting integration
+- **accounting_manager.py** - Financial tracking
+- **report_generator.py** - Report generation
+
+### Cloud/Local Split
+- **cloud_processor.py** - Cloud-based task processing
+- **local_executor.py** - Local task execution
+- **Work-zone architecture** - Claim-by-move system
 
 ---
 
-## 📈 Performance & Scalability
+## 📈 System Metrics
 
-### Processing Capacity
-```
-┌────────────────────────────────────────┐
-│ System Limits                          │
-├────────────────────────────────────────┤
-│                                        │
-│ Max Iterations per Task: 5             │
-│ Task Timeout: 10 minutes               │
-│ Planner Timeout: 5 minutes             │
-│ Default Cycle Interval: 5 minutes      │
-│                                        │
-│ Concurrent Processing: Sequential      │
-│ (One task at a time for safety)        │
-│                                        │
-└────────────────────────────────────────┘
-```
+### Current Capabilities
+- **Channels Monitored:** 3 (Gmail, WhatsApp, LinkedIn)
+- **Social Platforms:** 4 (LinkedIn, Twitter, Facebook, Instagram)
+- **MCP Servers:** 3 (Email, File, Approval)
+- **Agent Skills:** 30+
+- **Intent Types:** 10+
+- **Automation Scripts:** 20+
+- **Task Types:** 6
 
-### Log Management
-```
-┌────────────────────────────────────────┐
-│ Log Rotation                           │
-├────────────────────────────────────────┤
-│                                        │
-│ Max Log Size: 5 MB                     │
-│ Action: Auto-rotate to timestamped file│
-│ Retention: Manual cleanup required     │
-│                                        │
-└────────────────────────────────────────┘
-```
+### Performance
+- **Max Iterations per Task:** 5
+- **Task Timeout:** 10 minutes
+- **Default Cycle Interval:** 5 minutes
+- **Log Rotation:** 5 MB
+- **Concurrent Processing:** Sequential (safety)
 
 ---
 
-## 🎯 Use Cases & Examples
+## 🎯 Achievement Tiers
 
-### Example 1: Email Task
-```
-Input (Inbox/email_task.md):
-─────────────────────────────
-Send email to john@example.com
-Subject: Meeting Tomorrow
-Body: Let's meet at 10 AM
+### ✅ Bronze Tier - Foundation (100%)
+- Obsidian vault with Dashboard and Handbook
+- File monitoring and task generation
+- Claude Code integration
+- Folder structure (Inbox/Needs_Action/Done)
+- Agent Skills architecture
 
-Workflow:
-─────────────────────────────
-1. Task Planner creates Plan_email_task.md
-2. Ralph Wiggum detects email task
-3. Executes _execute_email_task()
-4. Sends email via Gmail
-5. Moves to Done/
-```
+### ✅ Silver Tier - Advanced Automation (100%)
+- Multiple watcher scripts (Gmail, WhatsApp, LinkedIn)
+- Automated scheduling (daemon + Windows Task Scheduler)
+- AI-powered reply generation (10+ intents)
+- Context-aware replies
+- LinkedIn auto-posting
+- Multi-platform social media
+- Business MCP Server
+- Human-in-the-loop workflows
+- Session persistence
 
-### Example 2: Social Media Post
-```
-Input (Inbox/linkedin_post.md):
-─────────────────────────────
-Post to LinkedIn:
-"Excited to share my new project!"
+### ✅ Gold Tier - Autonomous Employee (100%)
+- Instagram auto-post (fully automated)
+- Odoo accounting integration (with local fallback)
+- Multiple MCP servers (Business, Accounting, Social)
+- CEO briefing system (daily + weekly)
+- Social media analytics
+- Ralph Wiggum autonomous loop
+- Complete workflow automation
+- Comprehensive documentation
+- Error recovery and graceful degradation
+- Audit logging
+- Cross-domain integration
 
-Workflow:
-─────────────────────────────
-1. Task Planner creates Plan_linkedin_post.md
-2. Ralph Wiggum detects social media task
-3. Executes post_to_linkedin()
-4. Opens browser, logs in
-5. Creates post automatically
-6. Moves to Done/
-```
-
-### Example 3: Risky File Operation
-```
-Input (Inbox/delete_files.md):
-─────────────────────────────
-Delete all temporary files
-
-Workflow:
-─────────────────────────────
-1. Task Planner creates Plan_delete_files.md
-2. Ralph Wiggum detects "delete" keyword
-3. Marks as risky
-4. Creates APPROVAL_*.md in Needs_Approval/
-5. Waits for human approval
-6. User approves: status: approved
-7. Executes file deletion
-8. Moves to Done/
-```
-
----
-
-## 🔧 Configuration & Setup
-
-### Required Environment Variables
-```env
-# Minimum Required
-EMAIL_ADDRESS=your_email@gmail.com
-EMAIL_APP_PASSWORD=your_16_char_app_password
-```
-
-### Optional Integrations
-```env
-# Social Media (Optional)
-LINKEDIN_EMAIL=your_email@gmail.com
-LINKEDIN_PASSWORD=your_password
-
-INSTAGRAM_EMAIL=your_email@gmail.com
-INSTAGRAM_PASSWORD=your_password
-
-# Accounting (Optional)
-ODOO_URL=http://localhost:8069
-ODOO_DB=odoo
-ODOO_USERNAME=admin
-ODOO_PASSWORD=your_password
-```
-
----
-
-## 📊 Success Metrics
-
-### System Health Indicators
-```
-✅ Healthy System:
-  - Inbox processing < 5 minutes
-  - No stuck tasks in Needs_Action
-  - Approval response < 24 hours
-  - Log files < 5 MB
-  - No error spikes in logs
-
-⚠️  Warning Signs:
-  - Tasks stuck > 1 hour
-  - Multiple approval requests for same task
-  - Log files > 10 MB
-  - Repeated errors in logs
-
-❌ Critical Issues:
-  - Daemon not running
-  - Lock file exists but no process
-  - Inbox files not processing
-  - All tasks failing
-```
+### 🚀 Platinum Tier - Cloud Deployment (Ready)
+- Docker containerization
+- Multi-service orchestration
+- Cloud deployment ready
+- PM2 process management
+- Health monitoring
+- Auto-restart capabilities
+- Git sync for cloud/local
+- Work-zone architecture
 
 ---
 
 ## 🚀 Quick Start Guide
 
-### 1. Setup
+### Local Setup
 ```bash
-# Install dependencies
+# 1. Install dependencies
 pip install -r requirements.txt
+playwright install chromium
 
-# Configure environment
+# 2. Configure environment
 copy .env.example .env
-# Edit .env with your credentials
+# Edit .env with credentials
 
-# Create folders
-python scripts/run_ai_employee.py --status
-```
-
-### 2. Test Run
-```bash
-# Create test task
-echo "# Test Task" > AI_Employee_Vault/Inbox/test.md
-
-# Process once
+# 3. Test run
 python scripts/run_ai_employee.py --once
 
-# Check status
-python scripts/run_ai_employee.py --status
+# 4. Start daemon
+python scripts/run_ai_employee.py --daemon
 ```
 
-### 3. Production Deployment
+### Docker Setup
 ```bash
-# Start daemon
-python scripts/run_ai_employee.py --daemon --interval 300
+# 1. Configure environment
+copy .env.example .env
+# Edit .env with credentials
 
-# Monitor logs
-tail -f logs/ai_employee.log
+# 2. Build and start
+docker-compose up -d
 
-# Stop daemon
-Ctrl+C
+# 3. Monitor
+docker-compose logs -f
+
+# 4. Check status
+docker-compose ps
 ```
 
 ---
 
-## 🎓 Advanced Features
+## 🎓 Use Cases & Examples
 
-### Custom Task Types
-Add new task types by:
-1. Update `_determine_task_type()` in ralph_wiggum_loop.py
-2. Create handler function `_execute_custom_task()`
-3. Add to `execute_step()` routing logic
+### Example 1: Email Reply Automation
+```
+1. Gmail watcher detects new email
+2. Creates task in Inbox/
+3. Task planner analyzes intent
+4. Reply generator creates response
+5. Saves to Needs_Approval/
+6. User approves
+7. Reply sender sends email
+8. Archives to Done/
+```
 
-### Custom Approval Rules
-Modify approval logic in:
-- `_is_risky()` - Add/remove risky keywords
-- `execute_step()` - Change approval conditions
+### Example 2: Social Media Campaign
+```
+1. Create post content in Inbox/
+2. Task planner identifies social task
+3. Ralph Wiggum executes posting
+4. Posts to LinkedIn, Twitter, Facebook, Instagram
+5. Logs analytics
+6. Generates performance report
+7. Archives to Done/
+```
 
-### Integration Extensions
-Add new integrations:
-1. Create watcher script (e.g., `slack_watcher.py`)
-2. Output to Inbox folder
-3. System automatically processes
+### Example 3: Business Intelligence
+```
+1. CEO briefing runs daily (scheduled)
+2. Analyzes all activities
+3. Detects opportunities and bottlenecks
+4. Generates AI recommendations
+5. Saves report to Briefings/
+6. Updates Dashboard
+```
 
 ---
 
@@ -690,77 +670,56 @@ Add new integrations:
 
 ### Common Issues
 
-**Issue: Tasks not processing**
-```
-Solution:
-1. Check daemon is running
-2. Verify Inbox has files
-3. Check logs for errors
-4. Remove lock file if stale
-```
+**Tasks not processing**
+- Check daemon is running
+- Verify Inbox has files
+- Check logs for errors
+- Remove stale lock file
 
-**Issue: Approval not working**
-```
-Solution:
-1. Check file in Needs_Approval/
-2. Verify status format: "status: approved"
-3. Run system again to check approval
-```
+**Approval not working**
+- Check file in Needs_Approval/
+- Verify status format: "status: approved"
+- Run system again to check approval
 
-**Issue: Social media posting fails**
-```
-Solution:
-1. Delete session file
-2. Re-login manually
-3. Check credentials in .env
-4. Verify browser automation works
-```
+**Social media posting fails**
+- Delete session file
+- Re-login manually
+- Check credentials in .env
+- Verify Playwright installation
+
+**Docker issues**
+- Check Docker is running
+- Verify .env file exists
+- Check logs: `docker-compose logs`
+- Rebuild: `docker-compose build --no-cache`
 
 ---
 
-## 📚 Project Statistics
-
-```
-Total Scripts: 25+
-Total Lines of Code: ~5000+
-Supported Platforms: 5 (Gmail, WhatsApp, LinkedIn, Instagram, Twitter)
-Task Types: 6 (Email, Social, File, Accounting, Reporting, General)
-Automation Level: 90% (10% requires approval)
-```
-
----
-
-## 🎯 Future Enhancements
+## 🔮 Future Enhancements
 
 - [ ] Web dashboard for monitoring
 - [ ] Mobile app for approvals
 - [ ] AI-powered task prioritization
 - [ ] Multi-language support
-- [ ] Cloud deployment option
 - [ ] Advanced analytics & insights
 - [ ] Slack/Discord integration
 - [ ] Calendar integration
 - [ ] Voice command support
 - [ ] Machine learning for task routing
+- [ ] Multi-user support
+- [ ] API for external integrations
 
 ---
 
-## 📄 License & Credits
+## 📄 Project Information
 
 **Project:** Personal AI Employee
-**Version:** 1.0
-**Status:** Production Ready
-**Last Updated:** March 2026
+**Version:** 2.0 (Platinum Ready)
+**Status:** Production Ready + Docker Deployment
+**Last Updated:** April 2026
 
----
-
-## 🆘 Support & Contact
-
-For issues, questions, or contributions:
-- Check logs in `logs/` folder
-- Review `COMPLETE_PROJECT_GUIDE.md`
-- Test with `--once` mode first
-- Monitor system status regularly
+**Built with:** Python, TypeScript, Playwright, Docker, SMTP, IMAP, MCP, Odoo
+**Architecture:** Local-first, MCP-based, Agent Skills, Containerized
 
 ---
 

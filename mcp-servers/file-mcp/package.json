@@ -1,0 +1,17 @@
+{
+  "name": "file-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for file management operations in AI Employee Vault",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "dotenv": "^16.0.0"
+  },
+  "keywords": ["mcp", "file", "vault", "management"],
+  "author": "AI Employee",
+  "license": "MIT"
+}

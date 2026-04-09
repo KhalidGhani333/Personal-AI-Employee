@@ -50,66 +50,273 @@ python scripts/ralph_wiggum_loop.py
 python scripts/ralph_wiggum_loop.py continuous
 ```
 
-### Communication Monitoring
+---
+
+## 📱 Individual Platform Commands
+
+### Gmail - Email Reply Automation
+
 ```bash
-# Gmail
+# Step 1: Detect new emails
 python scripts/gmail_watcher.py --once
+
+# Step 2: Generate AI reply
+python scripts/reply_generator.py
+
+# Step 3: Approve reply in Obsidian
+# Open: AI_Employee_Vault/Needs_Approval/APPROVAL_*.md
+# Change: status: pending → status: approved
+# Save (Ctrl+S)
+
+# Step 4: Send approved reply
+python scripts/reply_sender.py
+
+# Continuous mode (runs every 5 minutes)
 python scripts/gmail_watcher.py --continuous --interval 300
+```
 
-# WhatsApp
+**Flow:** Email detected → AI generates reply → You approve → Email sent automatically
+
+---
+
+### WhatsApp - Message Reply Automation
+
+```bash
+# Step 1: Detect messages (QR scan first time only)
 python scripts/whatsapp_watcher.py --once
-python scripts/whatsapp_watcher.py --continuous --interval 120
 
-# LinkedIn
+# Step 2: Generate AI reply
+python scripts/reply_generator.py
+
+# Step 3: Approve in Obsidian
+# Change: status: pending → status: approved
+
+# Step 4: Send WhatsApp reply
+python scripts/reply_sender.py
+
+# Continuous mode (runs every 2 minutes)
+python scripts/whatsapp_watcher.py --continuous --interval 120
+```
+
+**Flow:** Message detected → AI generates reply → You approve → Message sent via WhatsApp Web
+
+**Note:** QR code scan only needed first time. Session saved for future use.
+
+---
+
+### LinkedIn - Post Content
+
+```bash
+# Method 1: Direct content (short posts)
+python scripts/linkedin_poster.py --content "Your post content! #AI #Automation"
+
+# Method 2: From file (long posts - RECOMMENDED)
+python scripts/linkedin_poster.py --file my_post.txt
+```
+
+---
+
+### LinkedIn - Monitor Messages
+
+```bash
+# Step 1: Check messages (login first time only)
+python scripts/linkedin_watcher.py
+# Or: 
 python scripts/linkedin_watcher.py --once
+
+# Step 2: Generate reply
+python scripts/reply_generator.py
+
+# Step 3: Approve in Obsidian
+# Change: status: pending → status: approved
+
+# Step 4: Send reply
+python scripts/reply_sender.py
+
+# Continuous mode (runs every 5 minutes)
 python scripts/linkedin_watcher.py --continuous --interval 300
 ```
 
-### AI Reply System
+**Flow:** Message detected → AI generates reply → You approve → Reply sent
+
+---
+
+### Facebook - Post Content
+
 ```bash
-# Generate replies
-python scripts/reply_generator.py
+# Post to Facebook only
+python scripts/social_poster.py pipeline "Your content here" --platforms facebook
+
+# Post to multiple platforms
+python scripts/social_poster.py pipeline "Your content" --platforms facebook linkedin twitter
+```
+
+**Flow:** Content provided → Browser opens → Post created → You review and publish
+
+---
+
+### Twitter - Post Content
+
+```bash
+# Post to Twitter
+python scripts/social_poster.py pipeline "Your tweet content" --platforms twitter
+
+# Generate content for Twitter
+python scripts/social_poster.py generate twitter "Topic"
+```
+
+---
+
+### Instagram - Post Content
+
+```bash
+# Post to Instagram (if configured)
+python scripts/social_poster.py pipeline "Your content" --platforms instagram
+```
+
+---
+
+## 🎯 Run by Tier
+
+### Bronze Tier - Basic Automation
+
+```bash
+# Run once
+python scripts/run_ai_employee.py --once
+
+# Check status
+python scripts/run_ai_employee.py --status
+
+# Run continuously (every 5 minutes)
+python scripts/run_ai_employee.py --daemon --interval 300
+
+# Move files manually
+python .claude/skills/vault-file-manager/scripts/move_task.py --file "task.md" --from "Inbox" --to "Done"
+```
+
+**What it does:** Monitors Inbox folder, processes tasks with Claude Code, moves completed tasks to Done folder.
+
+---
+
+### Silver Tier - Communication Automation
+
+```bash
+# Start all watchers (run each in separate terminal)
+python scripts/gmail_watcher.py --continuous --interval 300
+python scripts/whatsapp_watcher.py --continuous --interval 120
+python scripts/linkedin_watcher.py --continuous --interval 300
 python scripts/reply_generator.py --continuous --interval 300
-
-# Send approved replies
-python scripts/reply_sender.py
+python scripts/reply_sender.py --continuous --interval 600
 ```
 
-### Social Media
+**What it does:** Monitors Gmail/WhatsApp/LinkedIn, generates AI replies, sends approved replies.
+
+**Simpler option:**
 ```bash
-# Multi-platform posting
-python scripts/social_poster.py pipeline "Your content" --platforms linkedin twitter facebook instagram
-
-# LinkedIn auto-posting
-python scripts/linkedin_auto_poster.py --generate
-python scripts/linkedin_auto_poster.py --process
-python scripts/linkedin_auto_poster.py --schedule
-python scripts/linkedin_auto_poster.py --show-queue
-
-# Analytics
-python scripts/social_summary.py log linkedin "Post content"
-python scripts/social_summary.py summary
-python scripts/social_summary.py recent 10
+python scripts/run_ai_employee.py --daemon --interval 300
 ```
 
-### Business Intelligence
-```bash
-# CEO briefings
-python scripts/ceo_briefing.py daily
-python scripts/ceo_briefing.py weekly
-python scripts/ceo_briefing.py all
-```
+---
 
-### Accounting
+### Gold Tier - Business Intelligence
+
 ```bash
-# Odoo integration (with local fallback)
+# Accounting system
 python scripts/odoo_integration.py connect
 python scripts/odoo_integration.py expense 50.00 "Office supplies" --category office
 python scripts/odoo_integration.py income 500.00 "Client payment" --source client
 python scripts/odoo_integration.py balance
+
+# CEO briefing
+python scripts/ceo_briefing.py daily
+python scripts/ceo_briefing.py weekly
+python scripts/ceo_briefing.py all
+
+# Social media analytics
+python scripts/social_summary.py log linkedin "Post content"
+python scripts/social_summary.py summary
+python scripts/social_summary.py recent 10
+
+# Autonomous task execution
+python scripts/ralph_wiggum_loop.py
+python scripts/ralph_wiggum_loop.py continuous
+
+# MCP servers
+cd mcp-servers/email-mcp && npm start
+cd mcp-servers/file-mcp && npm start
+cd mcp-servers/approval-mcp && npm start
 ```
 
-### Docker Deployment
+**What it does:** Tracks finances, generates CEO briefings, analyzes social media, executes tasks autonomously.
+
+**Note:** Odoo is optional - if not configured, local storage is used automatically.
+
+---
+
+## 🚀 Run Complete Project
+
+### Option 1: Windows Task Scheduler (Recommended for 24/7)
+
+```bash
+# Setup once (run as Administrator)
+python scripts/setup_windows_scheduler.py --setup
+
+# Check status
+python scripts/setup_windows_scheduler.py --status
+
+# Enable/disable
+python scripts/setup_windows_scheduler.py --enable
+python scripts/setup_windows_scheduler.py --disable
+
+# Remove all tasks
+python scripts/setup_windows_scheduler.py --remove
+```
+
+**Schedule:**
+- Gmail Watcher: Every 5 minutes
+- WhatsApp Watcher: Every 2 minutes
+- LinkedIn Watcher: Every 5 minutes
+- Reply Generator: Every 5 minutes
+- Reply Sender: Every 10 minutes
+- LinkedIn Auto Poster: Every 30 minutes
+- Main Orchestrator: Every 5 minutes
+
+---
+
+### Option 2: Batch Script (Easiest - All Services at Once)
+
+**Simple one-command startup for all services:**
+
+```bash
+# PowerShell
+.\start_ai_employee.bat
+
+# CMD
+start_ai_employee.bat
+```
+
+**What it does:**
+- Starts 6 services simultaneously in background
+- Gmail Watcher (5 min interval)
+- WhatsApp Watcher (2 min interval)
+- LinkedIn Watcher (5 min interval)
+- Reply Generator (5 min interval)
+- Reply Sender (10 min interval)
+- Main Orchestrator (5 min interval)
+
+**Requirements:**
+- `.env` file must be configured
+- Python installed and in PATH
+
+**To stop all services:**
+```bash
+.\stop_ai_employee.bat
+```
+
+---
+
+### Option 3: Docker Deployment (Recommended for Cloud)
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -134,6 +341,72 @@ docker-stop.bat
 ./docker-start.sh
 ./docker-stop.sh
 ```
+
+---
+
+### Option 4: Manual Continuous Mode (Individual Commands)
+
+**If you want to run services individually:**
+
+```bash
+# Run all in background (Windows)
+start /B python scripts/gmail_watcher.py --interval 300
+start /B python scripts/whatsapp_watcher.py --interval 120
+start /B python scripts/linkedin_watcher.py --continuous --interval 300
+start /B python scripts/reply_generator.py --continuous --interval 300
+start /B python scripts/reply_sender.py --continuous --interval 600
+start /B python scripts/run_ai_employee.py --daemon --interval 300
+```
+
+---
+
+### Option 5: One-Time Execution (Manual Check)
+
+```bash
+# Check all channels
+python scripts/gmail_watcher.py --once
+python scripts/whatsapp_watcher.py --once
+python scripts/linkedin_watcher.py --once
+
+# Generate replies
+python scripts/reply_generator.py
+
+# Approve replies in Obsidian (status: pending → status: approved)
+
+# Send approved replies
+python scripts/reply_sender.py
+
+# Generate reports
+python scripts/ceo_briefing.py daily
+python scripts/odoo_integration.py balance
+python scripts/social_summary.py summary
+```
+
+---
+
+## 🎉 Quick Start Summary
+
+```bash
+# 1. Setup (one time)
+pip install -r requirements.txt
+playwright install chromium
+npm install
+copy .env.example .env
+# Edit .env with Gmail credentials
+
+# 2. Production (automated 24/7)
+python scripts/setup_windows_scheduler.py --setup
+
+# 3. Development (manual testing)
+python scripts/run_ai_employee.py --daemon
+
+# 4. One-time check
+python scripts/gmail_watcher.py --once
+python scripts/reply_generator.py
+python scripts/reply_sender.py
+```
+
+**Your AI Employee is now running! 🎉**
 
 ---
 

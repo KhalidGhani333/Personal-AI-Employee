@@ -13,14 +13,16 @@ echo.
 
 echo Stopping all Python processes related to AI Employee...
 
-REM Kill all Python processes running the scripts
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *gmail_watcher*" 2>nul
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *whatsapp_watcher*" 2>nul
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *linkedin_watcher*" 2>nul
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *reply_generator*" 2>nul
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *reply_sender*" 2>nul
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *linkedin_auto_poster*" 2>nul
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *run_ai_employee*" 2>nul
+REM Kill Python processes by command line (works for background processes)
+for /f "tokens=2" %%i in ('wmic process where "name='python.exe' and commandline like '%%gmail_watcher.py%%'" get processid /format:value ^| find "="') do taskkill /F /PID %%i 2>nul
+for /f "tokens=2" %%i in ('wmic process where "name='python.exe' and commandline like '%%whatsapp_watcher.py%%'" get processid /format:value ^| find "="') do taskkill /F /PID %%i 2>nul
+for /f "tokens=2" %%i in ('wmic process where "name='python.exe' and commandline like '%%linkedin_watcher.py%%'" get processid /format:value ^| find "="') do taskkill /F /PID %%i 2>nul
+for /f "tokens=2" %%i in ('wmic process where "name='python.exe' and commandline like '%%reply_generator.py%%'" get processid /format:value ^| find "="') do taskkill /F /PID %%i 2>nul
+for /f "tokens=2" %%i in ('wmic process where "name='python.exe' and commandline like '%%reply_sender.py%%'" get processid /format:value ^| find "="') do taskkill /F /PID %%i 2>nul
+for /f "tokens=2" %%i in ('wmic process where "name='python.exe' and commandline like '%%linkedin_auto_poster.py%%'" get processid /format:value ^| find "="') do taskkill /F /PID %%i 2>nul
+for /f "tokens=2" %%i in ('wmic process where "name='python.exe' and commandline like '%%run_ai_employee.py%%'" get processid /format:value ^| find "="') do taskkill /F /PID %%i 2>nul
+
+echo Processes stopped.
 
 REM Remove lock file if exists
 if exist "logs\ai_employee.lock" (

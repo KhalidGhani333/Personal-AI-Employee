@@ -1,2 +1,0 @@
-{"timestamp": "2026-02-25T00:00:00", "level": "info", "message": "Test entry", "metadata": {}}
-{"timestamp": "2026-02-25T14:10:31.362527", "level": "info", "message": "Test log entry from business MCP server", "metadata": {"test": true, "component": "test_script"}}

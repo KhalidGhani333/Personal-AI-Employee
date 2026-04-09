@@ -1,6 +1,7 @@
 # Environment variables and secrets
 .env
 *.env
+!.env.example
 
 # Python
 __pycache__/
@@ -38,10 +39,14 @@ env/
 
 # Session files and tokens (SENSITIVE - never commit)
 AI_Employee_Vault/Logs/sessions/
-AI_Employee_Vault/Logs/*.json
-AI_Employee_Vault/Browser_Profiles/
+AI_Employee_Vault/Logs/sessions/*.json
 *_session.json
+*session*.json
 playwright-state.json
+
+# Browser profiles (contain cookies and auth)
+AI_Employee_Vault/Browser_Profiles/
+Browser_Profiles/
 
 # In_Progress folders (temporary working state - not synced)
 AI_Employee_Vault/In_Progress/
@@ -49,9 +54,23 @@ AI_Employee_Vault/In_Progress/
 # Dashboard lock file (temporary)
 AI_Employee_Vault/.dashboard.lock
 
-# Log files (too large, regenerated)
+# Log files (too large, regenerated, may contain sensitive data)
 logs/*.log
+Logs/*.log
 AI_Employee_Vault/Logs/*.log
+.claude/agents/logs/*.log
+mcp-servers/*/Logs/*.log
+mcp-servers/**/Logs/*.log
+
+# State and processed files (contain runtime data)
+Logs/*.json
+AI_Employee_Vault/Logs/*.json
+AI_Employee_Vault/Logs/processed_*.json
+*_state.json
+
+# Accounting data (financial information)
+AI_Employee_Vault/Accounting/*.json
+AI_Employee_Vault/Accounting/transactions.json
 
 # Keep vault structure but ignore specific sensitive files
 # Note: We WANT to sync Inbox, Needs_Action, Needs_Approval, Done folders
@@ -76,3 +95,7 @@ tmp/
 
 # Playwright
 .playwright/
+
+# Secrets directory (never commit)
+secrets/
+secrets/**/*
